@@ -86,3 +86,66 @@ router.get("/:id", checkUser.authenticate, (req, res) => {
         return res.status(401).json();
     }
 });
+
+//Get all bills
+router.get("/",checkUser.authenticate, (req, res) => {
+    if (res.locals.user) {
+        let contentType = req.headers['content-type'];
+        if (contentType == 'application/json') {
+            mysql.query('select * from UserDB.Bill where owner_id=(?)', [res.locals.user.id], (err, data) => {
+                if (err) {
+                    console.log(err);
+                    return res.status(400).json();
+                }
+                else if (data[0] != null) {
+                    console.log(data);
+                    for (var i = 0; i < data.length; i++) {
+                        data[i].created_ts = localTime(data[i].created_ts);
+                        data[i].updated_ts = localTime(data[i].updated_ts);
+                        data[i].owner_id;
+                        data[i].vendor;
+                        data[i].bill_date = data[i].bill_date.toISOString().split('T')[0];
+                        data[i].due_date = data[i].due_date.toISOString().split('T')[0];
+                        data[i].amount_due;
+                        data[i].categories =  JSON.parse(data[i].categories);
+                        data[i].paymentStatus;
+                    }
+                    return res.status(200).json(data);
+                } else {
+                    return res.status(404).json();
+                }
+
+            });
+        } else {
+            return res.status(400).json();
+        }
+    } else{
+        return res.status(401).json();
+    }
+});
+
+//Delete a Bill
+router.delete('/:id', checkUser.authenticate, (req, res) => {
+    if (res.locals.user) {
+        mysql.query('select * from UserDB.Bill where id=(?)', [req.params.id], (err, result) => {
+            if (result[0] != null) {
+                if (result[0].owner_id === res.locals.user.id) {
+                    mysql.query('delete from UserDB.Bill where id=(?)', [req.params.id], (err, result) => {
+                        if (err) {
+                            console.log("Error ------", err);
+                            return res.status(404).json();
+                        } else {
+                            return res.status(200).json({msg: 'Deleted Successfully'});
+                        }
+                    });
+                } else {
+                    return res.status(401).json();
+                }
+            } else {
+                return res.status(404).json();
+            }
+        });
+    } else {
+        return res.status(401).json();
+    }
+});
