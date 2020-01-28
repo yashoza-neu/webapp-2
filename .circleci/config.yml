@@ -9,6 +9,10 @@ jobs:
       - checkout
 
       - run:
+          name: change Directory
+          command: cd webapp
+          
+      - run:
           name: update-npm
           command: npm install
 
