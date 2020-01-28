@@ -1,4 +1,3 @@
-
 version: 2.1
 
 jobs:
@@ -10,14 +9,13 @@ jobs:
       - checkout
 
       - run:
-        name: update-npm
-        command: 'sudo npm install'
+          name: update-npm
+          command: 'sudo npm install'
 
       - run:
-        name: start server
-        command: npm start
+          name: start server
+          command: npm start
 
       - run:
-        name: test
-        command: npm test
-
+          name: test
+          command: npm test
