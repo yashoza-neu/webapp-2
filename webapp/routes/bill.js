@@ -52,3 +52,37 @@ router.post("/", checkUser.authenticate, validator.validateBill, (req, res, next
         return res.status(400).json({ msg: '1111 be JSON!' });
     }
 });
+
+//Get a bill
+router.get("/:id", checkUser.authenticate, (req, res) => {
+    if (res.locals.user) {
+        let contentType = req.headers['content-type'];
+        if (contentType == 'application/json') {
+            mysql.query('select * from UserDB.Bill where id=(?) and owner_id=(?)', [req.params.id, res.locals.user.id], (err, data) => {
+                if (err) {
+                    return res.status(400).json();
+                }
+                else if (data[0] != null) {
+                    console.log(data[0]);
+                    data[0].created_ts = localTime(data[0].created_ts);
+                    data[0].updated_ts = localTime(data[0].updated_ts);
+                    data[0].owner_id;
+                    data[0].vendor;
+                    data[0].bill_date = data[0].bill_date.toISOString().split('T')[0];
+                    data[0].due_date = data[0].due_date.toISOString().split('T')[0];
+                    data[0].amount_due;
+                    data[0].categories =  JSON.parse(data[0].categories);
+                    data[0].paymentStatus;
+                    return res.status(200).json(data[0]);
+                } else {
+                    return res.status(404).json();
+                }
+
+            });
+        } else {
+            return res.status(400).json();
+        }
+    } else {
+        return res.status(401).json();
+    }
+});
