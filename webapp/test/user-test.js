@@ -1,17 +1,16 @@
 
-// // This agent refers to PORT where program is runninng.
-
 process.env.NODE_ENV ='test';
+const chai = require("chai");
+chaiHttp = require('chai-http');
+chai.use(chaiHttp);
 const expect = require('chai').expect;
 const supertest = require('supertest');
-const should = require("should");
 const request = require('request');
+const should = require("should");
 const mysql = require('../services/db');
 const checkUser = require('../services/auth');
 var server = supertest.agent("http://localhost:3000");
 const main =require('../routes/user.js');
-
-
 
 
 //----------------------------POST------------------------------------
@@ -19,7 +18,7 @@ describe('POST Test', () => {
     
     it('Create new User expect code 201',(done) => {
         server.post('/v1/user')   // enter URL for POST
-        .send({first_name:'cloud',last_name:'fall',password:'Cloud@123',email_address:'cloudfall100@gmail.com'})
+        .send({first_name:'cloud1',last_name:'fall1',password:'Cloud@123',email_address:'cloudfall11100@gmail.com'})
         .expect("Content-type",/json/)
         .end((err,res)=>{
             const body=res.body;
@@ -69,7 +68,7 @@ describe("GET Test",function(){
 
     it('Unauthorized User --> 401 : Unauthorized ',(done) => {
         server.get('/v1/user/self',checkUser.authenticate)
-        .send({password :'Cloud@123',username :'cloud200@gmail.com'})     // enter URL for GET
+        .send({password :'Aadish@1919',username :'aadish@gmail.com'})     // enter URL for GET
         .expect("Content-type",/json/)
         .expect(401)
         .end(function(err,res){
