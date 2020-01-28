@@ -7,16 +7,13 @@ jobs:
     
     steps:
       - checkout
-
-      - run:
-          name: Install curl & npm
-          command: npm install -g npm@latest
-
+      
       - run:
           name: change Directory
           command: |
             cd webapp
             ls -ax
+            npm install
 
       - run:
           name: update-npm
