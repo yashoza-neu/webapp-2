@@ -149,3 +149,77 @@ router.delete('/:id', checkUser.authenticate, (req, res) => {
         return res.status(401).json();
     }
 });
+
+//Change a bill
+router.put("/:id",checkUser.authenticate, validator.validateBill, (req,res) => {
+    if(res.locals.user){
+        if(req.body.owner_id != null || req.body.created_ts != null || req.body.updated_ts != null ||
+            req.body.id != null){
+                console.log("Wrong json format");
+                return res.status(400).json({ msg: '1' });
+            } else{
+                console.log(req.params.id);
+                mysql.query('select * from UserDB.Bill where id=(?)', [req.params.id], (err, result) => {
+                    if(result[0] != null){
+                        if(result[0].owner_id === res.locals.user.id){
+                            let contentType = req.headers['content-type'];
+                            if(contentType == 'application/json'){
+                                    let updatedTimeStamp = moment().format('YYYY-MM-DD HH:mm:ss');
+                                    let createdTimeStamp = localTime(result[0].created_ts);
+                                    let amount = parseFloat(req.body.amount_due);
+                                    mysql.query(`UPDATE UserDB.Bill SET
+                                    vendor = (?),
+                                    bill_date = (?),
+                                    due_date = (?),
+                                    amount_due = (?),
+                                    categories = (?),
+                                    paymentStatus = (?),
+                                    updated_ts = (?)
+                                    WHERE id = (?)`,
+                                    [req.body.vendor,
+                                    req.body.bill_date,
+                                    req.body.due_date,
+                                    amount,
+                                    JSON.stringify(req.body.categories),
+                                    req.body.paymentStatus,
+                                    updatedTimeStamp,
+                                    req.params.id], (err, results) => {
+                                        if(err){
+                                            console.log(err);
+                                            return res.status(404).json({ msg: '3' });
+                                        }else{
+                                            return res.status(201).json({
+                                                id: req.params.id,
+                                                created_ts: createdTimeStamp,
+                                                updated_ts: updatedTimeStamp,
+                                                owner_id: res.locals.user.id,
+                                                vendor: req.body.vendor,
+                                                bill_date: req.body.bill_date,
+                                                due_date: req.body.due_date,
+                                                amount_due: req.body.amount_due,
+                                                categories: req.body.categories,
+                                                paymentStatus: req.body.paymentStatus
+                    
+                                            }); 
+                                        }
+                                    })
+                            }
+                            else{
+                                return res.status(404).json({ msg: '4' });
+                            }
+                        }
+                        else{
+                            return res.status(404).json({ msg: '5' });
+                        }
+                    }
+                    else{
+                        return res.status(404).json({ msg: '6' });
+                    }
+                })
+            }
+    }else{
+        return res.status(404).json({ msg: '7' });
+    }
+});
+
+module.exports = router;
