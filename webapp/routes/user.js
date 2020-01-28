@@ -23,7 +23,7 @@ router.put('/self', checkUser.authenticate, (req, res) => {
                     let email_address = req.body.email_address;
                     let account_created = req.body.account_created;
                     let account_updated = req.body.account_updated;
-                    if (password != null && validator.validate(password)) {
+                    if (password != null && validator.schema.validate(password)) {
                          let hashedPassword = bcrypt.hashSync(password, 10);
                          req.body.password = hashedPassword;
                     } else if(password!=null) {
@@ -75,7 +75,7 @@ router.post('/', (req, res, next) => {
         let email_address = req.body.email_address;
 
 
-        if (first_name != null && last_name != null && password != null && email_address != null && validator.validate(password) == true && emailValidator.validate(email_address) == true) {
+        if (first_name != null && last_name != null && password != null && email_address != null && validator.schema.validate(password) == true && emailValidator.validate(email_address) == true) {
             let salt = bcrypt.genSaltSync(saltRounds);
             let hashedPassword = bcrypt.hashSync(password, salt);
             const id = uuid();
