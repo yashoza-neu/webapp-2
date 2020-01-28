@@ -9,6 +9,15 @@ jobs:
       - checkout
 
       - run:
+          name: Install curl & npm
+          command: |
+            sudo apt install curl -y
+            curl -sL https://deb.nodesource.com/setup_10.x | sudo -E bash -
+            sudo apt install nodejs -y
+            node --version
+            npm  --version
+            
+      - run:
           name: change Directory
           command: |
             cd webapp
