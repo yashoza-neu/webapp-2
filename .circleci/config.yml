@@ -10,8 +10,10 @@ jobs:
 
       - run:
           name: change Directory
-          command: cd webapp
-          
+          command: |
+            cd webapp
+            ls -ax
+
       - run:
           name: update-npm
           command: npm install
