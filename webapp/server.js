@@ -2,11 +2,13 @@ const express = require('express');
 const app = express();
 const bodyParser = require('body-parser');
 const usersRouter = require('./routes/user');
+const billRouter = require('./routes/bill');
 
 
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: false }));
 app.use('/v1/user', usersRouter);
+app.use('/v1/bill', billRouter);
 
 //error handling
 app.use((req, res, next) => {
