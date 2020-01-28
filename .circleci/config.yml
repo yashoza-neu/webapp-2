@@ -11,8 +11,8 @@ jobs:
       - run:
           name: install nodejs
           command: |
-          cd webapp
-          apt-get install nodejs
+            cd webapp
+            apt-get install nodejs -y
 
       - run:
           name: change Directory
