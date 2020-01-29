@@ -29,13 +29,9 @@ jobs:
             cd webapp
             npm install
 
-      - run:
-          name: start server
-          command: |
-            cd webapp
-            node server.js
-            npm start
 
       - run:
           name: test
-          command: npm test
+          command: |
+            cd webapp
+            npm test
