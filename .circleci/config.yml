@@ -11,13 +11,11 @@ jobs:
       - run:
           name: install nodejs
           command: |
-            set +e             
-            touch $BASH_ENV  
-            curl -o- https://raw.githubusercontent.com/creationix/nvm/v0.33.5/install.sh | bash
-            echo 'export NVM_DIR="$HOME/.nvm"' >> $BASH_ENV
-            echo '[ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh"' >> $BASH_ENV
-            echo 'nvm install v6.2.2' >> $BASH_ENV
-            echo 'nvm alias default v6.2.2' >> $BASH_ENV
+            apt-get update
+            apt install curl -y
+            apt-get install nodejs -y
+            apt-get install wget zip unzip python2.7 python-pip -y
+            node --version
 
       - run:
           name: change Directory
