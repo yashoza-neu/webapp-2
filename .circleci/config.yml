@@ -15,7 +15,6 @@ jobs:
             apt install curl -y
             apt install nodejs -y
             node --version
-            npm  --version
 
       - run:
           name: change Directory
