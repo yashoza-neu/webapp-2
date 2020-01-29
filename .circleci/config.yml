@@ -3,7 +3,7 @@ version: 2
 jobs:
   build:
     docker:
-      - image: cicrleci/node:10.0-browsers
+      - image: circleci/node:7.10
     
     steps:
       - checkout
