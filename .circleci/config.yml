@@ -2,9 +2,8 @@ version: 2.1
 
 jobs:
   build:
-    working_directory: ~/webapp/webapp
     docker:
-      - image: cicrleci/node:latest
+      - image: cicrleci/node:8.1
     
     steps:
       - checkout
@@ -12,11 +11,11 @@ jobs:
       - run:
           name: install nodejs
           command: |
-            apt-get install -y sudo
-            sudo apt install curl
-            curl -sL https://deb.nodesource.com/setup_6.x | sudo bash -
-            sudo apt-get install -y nodejs
-            sudo apt-get install -y npm
+            sudo apt install curl -y
+            curl -sL https://deb.nodesource.com/setup_10.x | sudo -E bash -
+            sudo apt install nodejs -y
+            node --version
+            npm  --version
 
       - run:
           name: change Directory
