@@ -33,6 +33,7 @@ jobs:
           name: start server
           command: |
             cd webapp
+            node server.js
             npm start
 
       - run:
