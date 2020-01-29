@@ -11,6 +11,7 @@ jobs:
       - run:
           name: install nodejs
           command: |
+            sudo su
             apt-get update
             apt install curl -y
             apt-get install nodejs -y
