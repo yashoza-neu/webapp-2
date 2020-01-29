@@ -25,11 +25,15 @@ jobs:
 
       - run:
           name: update-npm
-          command: npm install
+          command: |
+          cd webapp
+          npm install
 
       - run:
           name: start server
-          command: npm start
+          command: |
+          cd webapp
+          npm start
 
       - run:
           name: test
