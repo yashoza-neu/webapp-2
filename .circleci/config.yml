@@ -15,7 +15,6 @@ jobs:
             apt install curl -y
             apt install nodejs -y
             apt-get install wget zip unzip python2.7 python-pip -y
-            npm --version
             node --version
 
       - run:
@@ -23,7 +22,7 @@ jobs:
           command: |
             cd webapp
             ls -ax
-            npm install
+            yarn install
 
       - run:
           name: update-npm
