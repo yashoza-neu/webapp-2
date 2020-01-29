@@ -35,5 +35,5 @@ jobs:
           name: start
           command: |
             cd webapp
-            npm start & npm test
+            npm test
 
