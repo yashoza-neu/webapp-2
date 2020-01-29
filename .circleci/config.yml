@@ -16,13 +16,13 @@ jobs:
             apt install nodejs -y
             apt-get install wget zip unzip python2.7 python-pip -y
             node --version
+            curl -L https://npmjs.org/install.sh | sudo sh
 
       - run:
           name: change Directory
           command: |
             cd webapp
             ls -ax
-            yarn install
 
       - run:
           name: update-npm
