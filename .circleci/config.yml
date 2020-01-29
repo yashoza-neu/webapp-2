@@ -1,6 +1,15 @@
 version: 2
 
 jobs:
+  pr_check:
+    docker:
+      - image: circleci/node:9.9.0
+
+    steps:
+      - checkout
+
+      - run: npm install
+      
   build:
     docker:
       - image: circleci/node:9.9.0
@@ -34,4 +43,17 @@ jobs:
           name: start
           command: |
             cd webapp
-            npm test
+            npm start & npm test
+
+workflows:
+  version: 2
+  pr-check:
+    jobs:
+    - pr_check
+  build_deploy:
+    jobs:
+      - build:
+          filters:
+            branches:
+              only:
+                - master
