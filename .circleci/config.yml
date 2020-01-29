@@ -28,7 +28,6 @@ jobs:
           command: |
             cd webapp
             npm install
-            npm list
 
 
       - run:
