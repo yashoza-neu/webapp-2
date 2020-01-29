@@ -26,14 +26,12 @@ jobs:
       - run:
           name: update-npm
           command: |
-          cd webapp
-          npm install
+            cd webapp
+            npm install
 
       - run:
           name: start server
-          command: |
-          cd webapp
-          npm start
+          command: npm start
 
       - run:
           name: test
