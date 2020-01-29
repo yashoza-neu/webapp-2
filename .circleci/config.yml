@@ -12,9 +12,8 @@ jobs:
           name: install nodejs
           command: |
             apt-get install -y sudo
-            sudo apt install curl -y
-            curl -sL https://deb.nodesource.com/setup_10.x | sudo -E bash -
-            sudo apt install nodejs -y
+            apt install curl -y
+            apt install nodejs -y
             node --version
             npm  --version
 
