@@ -19,11 +19,10 @@ describe('POST Test', () => {
     
     it('Error Creating new User status 400',(done) => {
         server.post('/v1/user')   // enter URL for POST
-        .send({first_name :'cloud1',last_name :'fall1',password :'Cloud@123',email_address :'cloudfall1100@gmail.com'})
+        .send({first_name :'cloud1',last_name :'fall1',password :'Cloud@123',email_address :'cloudfall11100@gmail.com'})
         .expect("Content-type",/json/)
         .end((err,res)=>{
             const body=res.body;
-            console.log(res.body);
             res.status.should.equal(400);
             done();
         });

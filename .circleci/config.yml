@@ -1,7 +1,7 @@
 version: 2
 
 jobs:
-  build:
+  pr_check:
     docker:
       - image: circleci/node:9.9.0
     
@@ -36,3 +36,4 @@ jobs:
           command: |
             cd webapp
             npm start & npm test
+
