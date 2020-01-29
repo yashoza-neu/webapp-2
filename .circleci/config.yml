@@ -32,7 +32,7 @@ jobs:
 
 
       - run:
-          name: test
+          name: start
           command: |
             cd webapp
-            npm test
+            npm start
