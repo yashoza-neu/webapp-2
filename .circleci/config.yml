@@ -13,10 +13,9 @@ jobs:
           command: |
             apt-get update
             apt install curl -y
-            apt install nodejs -y
+            apt install nodejs@8.1 -y
             apt-get install wget zip unzip python2.7 python-pip -y
             node --version
-            curl -L https://npmjs.org/install.sh | sudo sh
 
       - run:
           name: change Directory
