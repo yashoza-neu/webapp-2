@@ -3,7 +3,7 @@ version: 2
 jobs:
   build:
     docker:
-      - image: cicrleci/node:latest
+      - image: cicrleci/node:8.1
     
     steps:
       - checkout
