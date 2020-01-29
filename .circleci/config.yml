@@ -1,6 +1,7 @@
 version: 2
 
 jobs:
+  build:
     docker:
       - image: circleci/node:9.9.0
     
@@ -35,4 +36,3 @@ jobs:
           command: |
             cd webapp
             npm test
-
