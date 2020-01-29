@@ -12,7 +12,10 @@ jobs:
           name: install nodejs
           command: |
             cd webapp
-            apt-get install nodejs -y
+            sudo apt install curl
+            curl -sL https://deb.nodesource.com/setup_6.x | sudo bash -
+            sudo apt-get install -y nodejs
+            sudo apt-get install -y npm
 
       - run:
           name: change Directory
