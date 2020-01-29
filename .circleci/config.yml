@@ -3,7 +3,7 @@ version: 2
 jobs:
   build:
     docker:
-      - image: cicrleci/node:8.1
+      - image: cicrleci/node:10.0-browsers
     
     steps:
       - checkout
