@@ -29,7 +29,6 @@ router.post("/", checkUser.authenticate, validator.validateBill, (req, res, next
                 req.body.paymentStatus
                 ], (err, result) => {
                     if(err){
-                        console.log(err);
                         return res.status(400).json({ msg: 'Please enter expected paymentStatus values!' });
                     }
                     else{
@@ -153,7 +152,6 @@ router.put("/:id",checkUser.authenticate, validator.validateBill, (req,res) => {
             req.body.id != null){
                 return res.status(400).json({ msg: 'Cannot update id, created_ts, updated_ts and owner_id' });
             } else{
-                console.log(req.params.id);
                 mysql.query('select * from UserDB.Bill where id=(?)', [req.params.id], (err, result) => {
                     if(result[0] != null){
                         if(result[0].owner_id === res.locals.user.id){
