@@ -155,8 +155,7 @@ router.put("/:id",checkUser.authenticate, validator.validateBill, (req,res) => {
     if(res.locals.user){
         if(req.body.owner_id != null || req.body.created_ts != null || req.body.updated_ts != null ||
             req.body.id != null){
-                console.log("Wrong json format");
-                return res.status(400).json({ msg: '1' });
+                return res.status(400).json({ msg: 'Cannot update id, created_ts, updated_ts and owner_id' });
             } else{
                 console.log(req.params.id);
                 mysql.query('select * from UserDB.Bill where id=(?)', [req.params.id], (err, result) => {
