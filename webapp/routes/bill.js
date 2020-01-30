@@ -29,7 +29,6 @@ router.post("/", checkUser.authenticate, validator.validateBill, (req, res, next
                 req.body.paymentStatus
                 ], (err, result) => {
                     if(err){
-                        console.log(err);
                         return res.status(400).json({ msg: 'Please enter expected paymentStatus values!' });
                     }
                     else{
@@ -49,7 +48,7 @@ router.post("/", checkUser.authenticate, validator.validateBill, (req, res, next
                     }
                 });
     }else{
-        return res.status(400).json({ msg: '1111 be JSON!' });
+        return res.status(400).json({ msg: 'Set content-type' });
     }
 });
 
@@ -63,7 +62,6 @@ router.get("/:id", checkUser.authenticate, (req, res) => {
                     return res.status(400).json();
                 }
                 else if (data[0] != null) {
-                    console.log(data[0]);
                     data[0].created_ts = localTime(data[0].created_ts);
                     data[0].updated_ts = localTime(data[0].updated_ts);
                     data[0].owner_id;
@@ -75,15 +73,15 @@ router.get("/:id", checkUser.authenticate, (req, res) => {
                     data[0].paymentStatus;
                     return res.status(200).json(data[0]);
                 } else {
-                    return res.status(404).json();
+                    return res.status(404).json({msg: 'no data with ID found'});
                 }
 
             });
         } else {
-            return res.status(400).json();
+            return res.status(400).json({ msg: 'Set content-type' });
         }
     } else {
-        return res.status(401).json();
+        return res.status(401).json({ msg: 'Authentication error' });
     }
 });
 
@@ -94,11 +92,9 @@ router.get("/",checkUser.authenticate, (req, res) => {
         if (contentType == 'application/json') {
             mysql.query('select * from UserDB.Bill where owner_id=(?)', [res.locals.user.id], (err, data) => {
                 if (err) {
-                    console.log(err);
                     return res.status(400).json();
                 }
                 else if (data[0] != null) {
-                    console.log(data);
                     for (var i = 0; i < data.length; i++) {
                         data[i].created_ts = localTime(data[i].created_ts);
                         data[i].updated_ts = localTime(data[i].updated_ts);
@@ -112,15 +108,15 @@ router.get("/",checkUser.authenticate, (req, res) => {
                     }
                     return res.status(200).json(data);
                 } else {
-                    return res.status(404).json();
+                    return res.status(404).json({ msg: 'No data found for user' });
                 }
 
             });
         } else {
-            return res.status(400).json();
+            return res.status(400).json({ msg: 'Set content-type' });
         }
     } else{
-        return res.status(401).json();
+        return res.status(401).json({ msg: 'Authentication error' });
     }
 });
 
@@ -132,21 +128,20 @@ router.delete('/:id', checkUser.authenticate, (req, res) => {
                 if (result[0].owner_id === res.locals.user.id) {
                     mysql.query('delete from UserDB.Bill where id=(?)', [req.params.id], (err, result) => {
                         if (err) {
-                            console.log("Error ------", err);
                             return res.status(404).json();
                         } else {
                             return res.status(200).json({msg: 'Deleted Successfully'});
                         }
                     });
                 } else {
-                    return res.status(401).json();
+                    return res.status(401).json({msg: 'Authentication Error, check user'});
                 }
             } else {
-                return res.status(404).json();
+                return res.status(404).json({msg: 'No record with this ID found'});
             }
         });
     } else {
-        return res.status(401).json();
+        return res.status(401).json({msg: 'Authentication error'});
     }
 });
 
@@ -155,10 +150,8 @@ router.put("/:id",checkUser.authenticate, validator.validateBill, (req,res) => {
     if(res.locals.user){
         if(req.body.owner_id != null || req.body.created_ts != null || req.body.updated_ts != null ||
             req.body.id != null){
-                console.log("Wrong json format");
-                return res.status(400).json({ msg: '1' });
+                return res.status(400).json({ msg: 'Cannot update id, created_ts, updated_ts and owner_id' });
             } else{
-                console.log(req.params.id);
                 mysql.query('select * from UserDB.Bill where id=(?)', [req.params.id], (err, result) => {
                     if(result[0] != null){
                         if(result[0].owner_id === res.locals.user.id){
@@ -185,8 +178,7 @@ router.put("/:id",checkUser.authenticate, validator.validateBill, (req,res) => {
                                     updatedTimeStamp,
                                     req.params.id], (err, results) => {
                                         if(err){
-                                            console.log(err);
-                                            return res.status(404).json({ msg: '3' });
+                                            return res.status(404).json({ msg: 'Please Enter all details' });
                                         }else{
                                             return res.status(201).json({
                                                 id: req.params.id,
@@ -205,20 +197,20 @@ router.put("/:id",checkUser.authenticate, validator.validateBill, (req,res) => {
                                     })
                             }
                             else{
-                                return res.status(404).json({ msg: '4' });
+                                return res.status(404).json({ msg: 'Set content-type' });
                             }
                         }
                         else{
-                            return res.status(404).json({ msg: '5' });
+                            return res.status(404).json({ msg: 'Authentication Error, check user' });
                         }
                     }
                     else{
-                        return res.status(404).json({ msg: '6' });
+                        return res.status(404).json({ msg: 'No bill with this ID found' });
                     }
                 })
             }
     }else{
-        return res.status(404).json({ msg: '7' });
+        return res.status(404).json({ msg: 'Authentication error' });
     }
 });
 

@@ -4,9 +4,10 @@
   "description": "",
   "main": "app.js",
   "directories": {
-    "test": "test"
+    "test": "jest"
   },
   "scripts": {
+    "schema": "node ./services/createSchema.js",
     "start": "node server.js",
     "test": "mocha"
   },

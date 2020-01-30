@@ -1,0 +1,85 @@
+version: 2
+
+jobs:
+  pr_check:
+    docker:
+      - image: circleci/node:9.9.0
+
+    steps:
+      - checkout
+
+      - run:
+          name: install nodejs
+          command: |
+            sudo apt-get update
+            sudo apt install curl -y
+            sudo apt-get install nodejs -y
+            sudo apt-get install wget zip unzip python2.7 python-pip -y
+            node --version
+
+      - run:
+          name: change Directory
+          command: |
+            cd webapp
+            ls -ax
+
+      - run:
+          name: update-npm
+          command: |
+            cd webapp
+            npm install
+
+
+      - run:
+          name: start
+          command: |
+            cd webapp
+            npm start & npm test
+
+  build:
+    docker:
+      - image: circleci/node:9.9.0
+    
+    steps:
+      - checkout
+
+      - run:
+          name: install nodejs
+          command: |
+            sudo apt-get update
+            sudo apt install curl -y
+            sudo apt-get install nodejs -y
+            sudo apt-get install wget zip unzip python2.7 python-pip -y
+            node --version
+
+      - run:
+          name: change Directory
+          command: |
+            cd webapp
+            ls -ax
+
+      - run:
+          name: update-npm
+          command: |
+            cd webapp
+            npm install
+
+
+      - run:
+          name: start
+          command: |
+            cd webapp
+            npm start & npm test
+
+workflows:
+  version: 2
+  pr-check:
+    jobs:
+      - pr_check
+  build_deploy:
+    jobs:
+      - build:
+          filters:
+            branches:
+              only:
+                - master
