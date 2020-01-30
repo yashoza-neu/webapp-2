@@ -1,17 +1,39 @@
 # CloudProject
+# CSYE 6225 - Spring 2020
 
-About the field data types in swagger docs:
+## Team Information
 
-If a field has readOnly set to true, the value in this field is populated by your application. Example field are timestamp and id. readOnly properties are included in responses but not in requests.
-If a field has writeOnly set to true, the value in this field is provided by API caller in POST or PUT request but these fields are not part of GET request. Example is password field. writeOnly properties may be sent in requests but not in responses.
-multipleOf keyword is used to specify that a number must be the multiple of another number.
-The minimum and maximum keywords are used to specify the range of possible values.
-User Stories¶
-All API request/response payloads should be in JSON.
-No UI should be implemented for the application.
-As a user, I expect all APIs call to return with proper HTTP status code.
-As a user, I expect the code quality of the application is maintained to highest standards using unit and/or integration tests.
-As a user, I want to get my bills from the application. If I try to get a bills owned by someone else, application should return appropriate error.
-As a user, I want to create a new bills in the system.
-As a user, I want to update a bills that I have created. If I try to update a bills owned by someone else, application should return appropriate error.
-As a user, I want to delete a bills that I have created. If I try to delete a bills owned by someone else, application should return appropriate error.
+| Name | NEU ID | Email Address |
+| --- | --- | --- |
+| Yash Devan Oza | 001407273 | oza.y@husky.neu.edu |
+
+## Technology Stack
+* Node.js
+* MySQL
+* Postman ,Mocha & Chai for testing
+
+## Build Instructions
+* Pre-requisites: Install Node.js,npm,MySQL
+* Set environment variables for MySQL connection and node server port
+* On terminal navigate to path :webapp/webapp
+* Run npm install, npm start to start node server
+* In Postman:
+* User:
+1. POST request: http://localhost:3000/v1/user
+2. GET request: http://localhost:3000/v1/user/self
+3. PUT request: http://localhost:3000/v1/user/self
+* Bill:
+1. GET request: http://localhost:3000/v1/bill/{id} 
+2. POST request: http://localhost:3000/v1/bill
+3. DELETE request: http://localhost:3000/v1/bill/{id}
+4. PUT request: http://localhost:3000/v1/bill/{id}
+5. GET request: http://localhost:3000/v1/bill
+
+## Deploy Instructions
+
+## Running Tests
+Run npm start to start node server & npm test for running test cases
+
+## CI/CD
+
+CircleCI
