@@ -11,7 +11,8 @@ const checkUser = require('../services/auth');
 const localTime = require('../services/localTime');
 const { check, validationResult } = require('express-validator');
 const { upload } = require('../services/image');
-
+const fs = require('fs')
+const DIR = './images'
 //Posting a new Bill
 router.post("/", checkUser.authenticate, validator.validateBill, (req, res, next) => {
     let contentType = req.headers['content-type'];
@@ -295,9 +296,18 @@ router.delete('/:billId/file/:fileId', checkUser.authenticate, (req, res) => {
                             if (err) {
                                 return res.status(500).json({ msg: err });
                             } else {
-                                mysql.query(`Delete from UserDb.File where id=(?)`, [req.params.fileId], (err, result) => {
+                                mysql.query(`Select * from UserDb.File where id=(?)`, [req.params.fileId], (err, result) => {
                                     if (err) {
                                         return res.status(500).json({ msg: err });
+                                    }else{
+                                        if(result[0]!= null){
+                                            let filename = result[0].file_name;
+                                            console.log(filename);
+                                            fs.unlinkSync(DIR+'/'+filename);
+                                            mysql.query(`Delete from UserDb.File where id=(?)`, [req.params.fileId], (err, result) => {
+                                            });
+                                        }
+
                                     }
                                 });
                                 return res.status(204).json("Attachment Deleted");
