@@ -259,5 +259,28 @@ router.put("/:id",checkUser.authenticate, validator.validateBill, (req,res) => {
     });
  });
 
+ // Get Attachment with attachmentId and BillId
+router.get('/:billId/file/:fileId', checkUser.authenticate, (req, res) => {
+    if (res.locals.user) {
+        mysql.query('select attachment from UserDB.Bill where id=(?) and owner_id=(?)', [req.params.billId, res.locals.user.id], (err, data) => {
+            if (data[0] != null) {
+                if (data[0].attachment != null) {
+                    data[0].attachment = JSON.parse(data[0].attachment);
+                    if (req.params.fileId === data[0].attachment.id) {
+                        return res.status(200).json(data[0].attachment);
+                    } else {
+                        return res.status(404).json({ msg: 'Image not found' });
+                    }
+                } else {
+                    return res.status(404).json({ msg: 'Image not found!' });
+                }
+            } else {
+                return res.status(404).json({ msg: 'Bill Not Found!' });
+            }
+        });
+    }else{
+        return res.status(404).json({ msg: 'Authentication error' });
+    }
+});
 
 module.exports = router;
