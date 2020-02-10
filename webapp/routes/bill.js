@@ -283,4 +283,42 @@ router.get('/:billId/file/:fileId', checkUser.authenticate, (req, res) => {
     }
 });
 
+//Delete attachment
+router.delete('/:billId/file/:fileId', checkUser.authenticate, (req, res) => {
+    if (res.locals.user) {
+        mysql.query('select attachment from UserDb.Bill where id=(?)', [req.params.billId], (err, data) => {
+            if (data[0] != null) {
+                if (data[0].attachment != null) {
+                    data[0].attachment = JSON.parse(data[0].attachment);
+                    if (req.params.fileId === data[0].attachment.id) {
+                        mysql.query(`UPDATE UserDb.Bill SET attachment=(?) where id=(?)`, [null,  req.params.billId], (err, result) => {
+                            if (err) {
+                                return res.status(500).json({ msg: err });
+                            } else {
+                                mysql.query(`Delete from UserDb.File where id=(?)`, [req.params.fileId], (err, result) => {
+                                    if (err) {
+                                        return res.status(500).json({ msg: err });
+                                    }
+                                });
+                                return res.status(204).json("Attachment Deleted");
+                            }
+                        });
+
+                    } else {
+                        return res.status(400).json({ msg: 'Attachment Not Found!' });
+                    }
+                }
+                else {
+                    return res.status(404).json({ msg: 'Attachment Not Found!' });
+                }
+            } else {
+                return res.status(404).json({ msg: 'Attachmnet/Bill Not Found!' });
+            }
+        });
+    }
+    else {
+        return res.status(401).json({ msg: 'User unauthorized!' });
+    }
+});
+
 module.exports = router;
