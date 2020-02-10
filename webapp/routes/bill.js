@@ -10,6 +10,7 @@ const saltRounds = 10;
 const checkUser = require('../services/auth');
 const localTime = require('../services/localTime');
 const { check, validationResult } = require('express-validator');
+const { upload } = require('../services/image');
 
 //Posting a new Bill
 router.post("/", checkUser.authenticate, validator.validateBill, (req, res, next) => {
@@ -213,5 +214,50 @@ router.put("/:id",checkUser.authenticate, validator.validateBill, (req,res) => {
         return res.status(404).json({ msg: 'Authentication error' });
     }
 });
+
+// Post Attachment to existing bill
+ router.post("/:id/file", checkUser.authenticate, upload.single('file'),  (req, res, next) => {
+     let id = uuid();
+     let uploadDate = moment().format('YYYY-MM-DD');
+     mysql.query('select * from UserDB.Bill where id=(?)', [req.params.id], (err, result) => {
+        if (result[0] != null) {
+            if (result[0].owner_id === res.locals.user.id) {
+                if (result[0].attachment != null) {
+                    return res.status(400).json({ msg: 'Please delete the previous image before re-uploading' });
+                } else {
+                    console.log(uploadDate);
+                    console.log(req.file.filename);
+                    console.log( req.file.path);
+                    let attachment = {
+                        'id': id,
+                        'url': req.file.path,
+                        'file_name' : req.file.filename,
+                        'upload_date' : uploadDate
+                    };
+                    console.log(attachment);
+                    mysql.query('insert into UserDB.File(`id`,`file_name`,`url`,`upload_date`)values(?,?,?,?)'
+                    , [id, req.file.filename, req.file.path, uploadDate], (err, result) => {
+                    if(!err){
+                        mysql.query('UPDATE UserDB.Bill SET attachment=(?) where id=(?)', [JSON.stringify(attachment), req.params.id], (err, result) => {
+                            if (!err) {
+                                return res.status(201).json(attachment);
+                            } else {
+                                return res.status(500).json({ msg: 'Some error while storing attachment data to DB' });
+                            }
+                        });
+                    }else{
+                        return res.status(500)
+                    }
+                });
+                }
+            }else{
+                return res.status(401).json({ msg: 'Unauthorized' });
+            }
+        }else{
+            return res.status(404).json({ msg: 'Bill Not Found' });
+        }
+    });
+ });
+
 
 module.exports = router;
