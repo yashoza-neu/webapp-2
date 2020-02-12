@@ -4,21 +4,14 @@ var storage = multer.diskStorage({
       cb(null, './images');
     },
     filename: (req, file, cb) => {
-      console.log(file);
-      var filetype = '';
-      if(file.mimetype === 'image/gif') {
-        filetype = 'gif';
+      var filetypes = /jpeg|jpg|png|pdf/;
+      var mimetype = filetypes.test(file.mimetype);
+      if (mimetype) {
+        objId = file.originalname + '_' + Date.now().toString();
+        cb(null, objId);
+      } else {
+        cb("Error: File upload only supports the following filetypes - " + filetypes);
       }
-      if(file.mimetype === 'image/png') {
-        filetype = 'png';
-      }
-      if(file.mimetype === 'image/jpeg') {
-        filetype = 'jpg';
-      }
-      if(file.mimetype === 'image/pdf') {
-        filetype = 'pdf';
-      }
-      cb(null, 'image-' + Date.now() + '.' + filetype);
     }
 });
 var upload = multer({storage: storage});
