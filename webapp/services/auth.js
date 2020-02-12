@@ -3,8 +3,8 @@ const bcrypt = require('bcrypt');
 
 // To authenticate User (Basic Auth)
 exports.authenticate = (req, res, next) => {
-    let contentType = req.headers['content-type'];
-    if (contentType == 'application/json') {
+    //let contentType = req.headers['content-type'];
+    // if (contentType == 'application/json') {
         let authHeader = req.headers.authorization;
         if (!authHeader) {
             return res.status(401).json({ message: 'Unauthorized' });
@@ -29,7 +29,7 @@ exports.authenticate = (req, res, next) => {
                 return res.status(401).json({ message: 'Unauthorized' });
             }
         })
-    } else {
-        return res.status(400).json({ message: 'Bad Request' });
-    }
+    // } else {
+    //     return res.status(400).json({ message: 'Bad Request' });
+    //}
 }
