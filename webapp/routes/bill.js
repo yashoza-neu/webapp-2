@@ -10,6 +10,10 @@ const saltRounds = 10;
 const checkUser = require('../services/auth');
 const localTime = require('../services/localTime');
 const { check, validationResult } = require('express-validator');
+const { upload } = require('../services/image');
+const fs = require('fs')
+const DIR = './images'
+var crypto = require('crypto');
 
 //Posting a new Bill
 router.post("/", checkUser.authenticate, validator.validateBill, (req, res, next) => {
@@ -211,6 +215,121 @@ router.put("/:id",checkUser.authenticate, validator.validateBill, (req,res) => {
             }
     }else{
         return res.status(404).json({ msg: 'Authentication error' });
+    }
+});
+
+// Post Attachment to existing bill
+ router.post("/:id/file", checkUser.authenticate, upload.single('file'),  (req, res, next) => {
+     let id = uuid();
+     let uploadDate = moment().format('YYYY-MM-DD');
+     mysql.query('select * from UserDB.Bill where id=(?)', [req.params.id], (err, result) => {
+        if (result[0] != null) {
+            if (result[0].owner_id === res.locals.user.id) {
+                if (result[0].attachment != null) {
+                    return res.status(400).json({ msg: 'Please delete the previous image before re-uploading' });
+                } else {
+                    //console.log(uploadDate);
+                    //console.log(req.file.filename);
+                    //console.log( req.file.path);
+                    let hash = crypto.createHash('md5').update(req.file.filename).digest('hex');
+                    let attachment = {
+                        'id': id,
+                        'url': req.file.path,
+                        'file_name' : req.file.filename,
+                        'upload_date' : uploadDate
+                    };
+                    //console.log(req.file.size);
+                    mysql.query('insert into UserDB.File(`id`,`file_name`,`url`,`upload_date`,`metadata`)values(?,?,?,?,?)'
+                    , [id, req.file.filename, req.file.path, uploadDate, hash], (err, result) => {
+                    if(!err){
+                        mysql.query('UPDATE UserDB.Bill SET attachment=(?) where id=(?)', [JSON.stringify(attachment), req.params.id], (err, result) => {
+                            if (!err) {
+                                return res.status(201).json(attachment);
+                            } else {
+                                return res.status(500).json({ msg: 'Some error while storing attachment data to DB' });
+                            }
+                        });
+                    }else{
+                        return res.status(500).json({msg: 'Unsupported filetype'});
+                    }
+                });
+                }
+            }else{
+                return res.status(401).json({ msg: 'Unauthorized' });
+            }
+        }else{
+            return res.status(404).json({ msg: 'Bill Not Found' });
+        }
+    });
+ });
+
+ // Get Attachment with attachmentId and BillId
+router.get('/:billId/file/:fileId', checkUser.authenticate, (req, res) => {
+    if (res.locals.user) {
+        mysql.query('select attachment from UserDB.Bill where id=(?) and owner_id=(?)', [req.params.billId, res.locals.user.id], (err, data) => {
+            if (data[0] != null) {
+                if (data[0].attachment != null) {
+                    data[0].attachment = JSON.parse(data[0].attachment);
+                    if (req.params.fileId === data[0].attachment.id) {
+                        return res.status(200).json(data[0].attachment);
+                    } else {
+                        return res.status(404).json({ msg: 'Image not found' });
+                    }
+                } else {
+                    return res.status(404).json({ msg: 'Image not found!' });
+                }
+            } else {
+                return res.status(404).json({ msg: 'Bill Not Found!' });
+            }
+        });
+    }else{
+        return res.status(404).json({ msg: 'Authentication error' });
+    }
+});
+
+//Delete attachment
+router.delete('/:billId/file/:fileId', checkUser.authenticate, (req, res) => {
+    if (res.locals.user) {
+        mysql.query('select attachment from UserDb.Bill where id=(?)', [req.params.billId], (err, data) => {
+            if (data[0] != null) {
+                if (data[0].attachment != null) {
+                    data[0].attachment = JSON.parse(data[0].attachment);
+                    if (req.params.fileId === data[0].attachment.id) {
+                        mysql.query(`UPDATE UserDb.Bill SET attachment=(?) where id=(?)`, [null,  req.params.billId], (err, result) => {
+                            if (err) {
+                                return res.status(500).json({ msg: err });
+                            } else {
+                                mysql.query(`Select * from UserDb.File where id=(?)`, [req.params.fileId], (err, result) => {
+                                    if (err) {
+                                        return res.status(500).json({ msg: err });
+                                    }else{
+                                        if(result[0]!= null){
+                                            let filename = result[0].file_name;
+                                            console.log(filename);
+                                            fs.unlinkSync(DIR+'/'+filename);
+                                            mysql.query(`Delete from UserDb.File where id=(?)`, [req.params.fileId], (err, result) => {
+                                            });
+                                        }
+                                    }
+                                });
+                                return res.status(204).json("Attachment Deleted");
+                            }
+                        });
+
+                    } else {
+                        return res.status(400).json({ msg: 'Attachment Not Found!' });
+                    }
+                }
+                else {
+                    return res.status(404).json({ msg: 'Attachment Not Found!' });
+                }
+            } else {
+                return res.status(404).json({ msg: 'Attachmnet/Bill Not Found!' });
+            }
+        });
+    }
+    else {
+        return res.status(401).json({ msg: 'User unauthorized!' });
     }
 });
 

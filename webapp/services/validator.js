@@ -13,8 +13,7 @@ schema.has().symbols();
 
 let validateBill = [
     check('vendor').exists().isString().trim().not().isEmpty(),
-    check('categories').exists().isArray().not().isEmpty()
-    .custom((value, {req}) => {
+    check('categories').exists().isArray().not().isEmpty().custom((value, {req}) => {
         for(let i=0;i<value.length;i++){
             value[i] = value[i].replace(/\s/g, ' ');
         }
