@@ -10,7 +10,8 @@ var storage = multer.diskStorage({
         objId = file.originalname + '_' + Date.now().toString();
         cb(null, objId);
       } else {
-        cb("Error: File upload only supports the following filetypes - " + filetypes);
+          console.log("err");
+        cb("Error: File upload only supports the following filetypes - ");
       }
     }
 });

@@ -250,7 +250,7 @@ router.put("/:id",checkUser.authenticate, validator.validateBill, (req,res) => {
                             }
                         });
                     }else{
-                        return res.status(500)
+                        return res.status(500).json({msg: 'Unsupported filetype'});
                     }
                 });
                 }
