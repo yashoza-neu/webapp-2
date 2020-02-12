@@ -13,6 +13,8 @@ const { check, validationResult } = require('express-validator');
 const { upload } = require('../services/image');
 const fs = require('fs')
 const DIR = './images'
+var crypto = require('crypto');
+
 //Posting a new Bill
 router.post("/", checkUser.authenticate, validator.validateBill, (req, res, next) => {
     let contentType = req.headers['content-type'];
@@ -226,18 +228,19 @@ router.put("/:id",checkUser.authenticate, validator.validateBill, (req,res) => {
                 if (result[0].attachment != null) {
                     return res.status(400).json({ msg: 'Please delete the previous image before re-uploading' });
                 } else {
-                    console.log(uploadDate);
-                    console.log(req.file.filename);
-                    console.log( req.file.path);
+                    //console.log(uploadDate);
+                    //console.log(req.file.filename);
+                    //console.log( req.file.path);
+                    let hash = crypto.createHash('md5').update(req.file.filename).digest('hex');
                     let attachment = {
                         'id': id,
                         'url': req.file.path,
                         'file_name' : req.file.filename,
                         'upload_date' : uploadDate
                     };
-                    console.log(attachment);
-                    mysql.query('insert into UserDB.File(`id`,`file_name`,`url`,`upload_date`)values(?,?,?,?)'
-                    , [id, req.file.filename, req.file.path, uploadDate], (err, result) => {
+                    //console.log(req.file.size);
+                    mysql.query('insert into UserDB.File(`id`,`file_name`,`url`,`upload_date`,`metadata`)values(?,?,?,?,?)'
+                    , [id, req.file.filename, req.file.path, uploadDate, hash], (err, result) => {
                     if(!err){
                         mysql.query('UPDATE UserDB.Bill SET attachment=(?) where id=(?)', [JSON.stringify(attachment), req.params.id], (err, result) => {
                             if (!err) {
@@ -307,7 +310,6 @@ router.delete('/:billId/file/:fileId', checkUser.authenticate, (req, res) => {
                                             mysql.query(`Delete from UserDb.File where id=(?)`, [req.params.fileId], (err, result) => {
                                             });
                                         }
-
                                     }
                                 });
                                 return res.status(204).json("Attachment Deleted");
