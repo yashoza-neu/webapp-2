@@ -6,17 +6,7 @@ var server = supertest.agent("http://localhost:3000");
 
 
 //------------------------------GET-------------------------------------
-describe('get() recepie', ()=>{
-    it("should not return recepie", (done)=>{
-        server.get('/v1/bill/a236b214-e585-11e9-b3b2-142c9f9e3')   // provide invalid id
-        .expect("Content-type",/json/)
-        .expect(400)
-        .end((err,res)=>{
-            res.status.should.equal(400);
-            done();
-        });
-    });
-});
+
 
 //----------------------------POST---------------------------------------
 describe("post Test",function(){
