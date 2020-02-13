@@ -89,17 +89,7 @@ describe('Basic URL Test', () => {
 
 describe('PUT request', () => {
 
-    it('Update Invalid User Details --> 400 : BAD request',(done) => {
-        server.put('/v1/user/self',checkUser.authenticate)     // enter URL for PUT
-        .expect("Content-type",/json/)
-        .expect(400)
-        .end(function(err,res){
-            var json_body = res.body;
-            var msg = json_body.message;
-            expect(msg).to.equal('Bad Request');
-            done();
-        });
-    });
+    
 
     it('Unautherized User --> 401 : Unautherized ',(done) => {
         server.put('/v1/user/self',checkUser.authenticate)
