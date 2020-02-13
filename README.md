@@ -29,6 +29,7 @@
 3. DELETE request: http://localhost:3000/v1/bill/{id}
 4. PUT request: http://localhost:3000/v1/bill/{id}
 5. GET request: http://localhost:3000/v1/bill
+6. POst Attachment
 
 ## Deploy Instructions
 

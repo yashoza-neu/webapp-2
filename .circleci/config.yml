@@ -1,3 +1,4 @@
+---
 version: 2
 
 jobs:
@@ -73,10 +74,10 @@ jobs:
 
 workflows:
   version: 2
-  pr-check:
+  pr-check-workflow:
     jobs:
       - pr_check
-  build_deploy:
+  build-deploy-workflow:
     jobs:
       - build:
           filters:
