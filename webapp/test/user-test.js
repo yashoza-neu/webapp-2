@@ -13,11 +13,6 @@ var server = supertest.agent("http://localhost:3000");
 const main =require('../routes/user.js');
 
 
-//----------------------------POST------------------------------------
-
-
-// // -----------------------------------GET------------------------------------------
-
 describe("GET Test",function(){
 
 
