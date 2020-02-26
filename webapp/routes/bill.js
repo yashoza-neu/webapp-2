@@ -299,7 +299,6 @@ router.get('/:billId/file/:fileId', checkUser.authenticate, (req, res) => {
                             bill_date: result[0].bill_date,
                             due_date: result[0].due_date,
                             amount_due: result[0].amount_due,
-                            categories: JSON.parse(result[0].categories),
                             presignedURL: data
                             });
                         });
@@ -352,8 +351,8 @@ router.delete('/:billId/file/:fileId', checkUser.authenticate, (req, res) => {
                                                     console.log(err);
                                                 }
                                             });
-                                            mysql.query(`Delete from UserDb.File where id=(?)`, [req.params.fileId], (err, result) => {
-                                                if (err) { return res.status(500).json({ msg: err }); }
+                                            mysql.query(`Delete from UserDB.File where id=(?)`, [req.params.fileId], (err, result) => {
+                                                if (err) { console.log(err); }
                                                 else {
                                                     console.log("Deleted");
                                                 }
