@@ -12,7 +12,7 @@ con.connect(function (err) {
     if (err) throw err;
     else {
         console.log("Connected!");
-        con.query("DROP DATABASE IF EXISTS userDB;", function (err, result) {
+        con.query("DROP DATABASE IF EXISTS UserDB;", function (err, result) {
             if (err) throw err;
             else {
                 con.query("CREATE DATABASE UserDB;", function (err, result) {
