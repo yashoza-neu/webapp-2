@@ -18,7 +18,7 @@ const DIR = './images'
 
 let s3 = new aws.S3();
 const bucket = process.env.S3_BUCKET_ADDR;
-console.log(process.env.S3_BUCKET_ADDR);
+//console.log(process.env.S3_BUCKET_ADDR);
 //Posting a new Bill
 router.post("/", checkUser.authenticate, validator.validateBill, (req, res, next) => {
     let contentType = req.headers['content-type'];
@@ -280,12 +280,29 @@ router.post("/:id/file", checkUser.authenticate, upload.single('file'), (req, re
 // Get Attachment with attachmentId and BillId
 router.get('/:billId/file/:fileId', checkUser.authenticate, (req, res) => {
     if (res.locals.user) {
-        mysql.query('select attachment from UserDB.Bill where id=(?) and owner_id=(?)', [req.params.billId, res.locals.user.id], (err, data) => {
-            if (data[0] != null) {
-                if (data[0].attachment != null) {
-                    data[0].attachment = JSON.parse(data[0].attachment);
-                    if (req.params.fileId === data[0].attachment.id) {
-                        return res.status(200).json(data[0].attachment);
+        mysql.query('select attachment from UserDB.Bill where id=(?) and owner_id=(?)', [req.params.billId, res.locals.user.id], (err, result) => {
+            if (result[0] != null) {
+                if (result[0].attachment != null) {
+                    result[0].attachment = JSON.parse(result[0].attachment);
+                    if (req.params.fileId === result[0].attachment.id) {
+                        let url = result[0].attachment.file_name;
+                        let params= {
+                            Bucket: bucket,
+                            Key: url
+                        }
+                        s3.getSignedUrl('getObject', params, (err, data) => {
+                        res.status(200).json({
+                            created_ts: result[0].created_ts,
+                            updated_ts: result[0].updated_ts,
+                            owner_id: result[0].owner_id,
+                            vendor: result[0].vendor,
+                            bill_date: result[0].bill_date,
+                            due_date: result[0].due_date,
+                            amount_due: result[0].amount_due,
+                            categories: JSON.parse(result[0].categories),
+                            presignedURL: data
+                            });
+                        });
                     } else {
                         return res.status(404).json({ msg: 'Image not found' });
                     }
