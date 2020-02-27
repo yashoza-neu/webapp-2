@@ -2,28 +2,32 @@ const express = require('express');
 const router = express.Router();
 const emailValidator = require('email-validator');
 const validator = require('../services/validator');
-const bcrypt =require('bcrypt');
+const bcrypt = require('bcrypt');
 const uuid = require('uuid')
 const moment = require('moment');
 const mysql = require('../services/db');
 const saltRounds = 10;
 const checkUser = require('../services/auth');
+const aws = require('aws-sdk');
+var crypto = require('crypto');
 const localTime = require('../services/localTime');
 const { check, validationResult } = require('express-validator');
-const { upload } = require('../services/image');
+const { upload, deleteFromS3, getMetaDataFromS3 } = require('../services/image');
 const fs = require('fs')
 const DIR = './images'
-var crypto = require('crypto');
 
+let s3 = new aws.S3();
+const bucket = process.env.S3_BUCKET_ADDR;
+//console.log(process.env.S3_BUCKET_ADDR);
 //Posting a new Bill
 router.post("/", checkUser.authenticate, validator.validateBill, (req, res, next) => {
     let contentType = req.headers['content-type'];
-    if(contentType == 'application/json'){
-            let id = uuid();
-            let amount = parseFloat(req.body.amount_due);
-            let timeStamp = moment().format('YYYY-MM-DD HH:mm:ss');
-            mysql.query('insert into UserDB.Bill(`id`,`created_ts`,`updated_ts`,`owner_id`,`vendor`,`bill_date`,`due_date`,`amount_due`,`categories`,`paymentStatus`)values(?,?,?,?,?,?,?,?,?,?)',
-                [id,timeStamp, timeStamp,
+    if (contentType == 'application/json') {
+        let id = uuid();
+        let amount = parseFloat(req.body.amount_due);
+        let timeStamp = moment().format('YYYY-MM-DD HH:mm:ss');
+        mysql.query('insert into UserDB.Bill(`id`,`created_ts`,`updated_ts`,`owner_id`,`vendor`,`bill_date`,`due_date`,`amount_due`,`categories`,`paymentStatus`)values(?,?,?,?,?,?,?,?,?,?)',
+            [id, timeStamp, timeStamp,
                 res.locals.user.id,
                 req.body.vendor,
                 req.body.bill_date,
@@ -31,27 +35,27 @@ router.post("/", checkUser.authenticate, validator.validateBill, (req, res, next
                 amount,
                 JSON.stringify(req.body.categories),
                 req.body.paymentStatus
-                ], (err, result) => {
-                    if(err){
-                        return res.status(400).json({ msg: 'Please enter expected paymentStatus values!' });
-                    }
-                    else{
-                        return res.status(201).json({
-                            id: id,
-                            created_ts: timeStamp,
-                            updated_ts: timeStamp,
-                            owner_id: res.locals.user.id,
-                            vendor: req.body.vendor,
-                            bill_date: req.body.bill_date,
-                            due_date: req.body.due_date,
-                            amount_due: amount,
-                            categories: req.body.categories,
-                            paymentStatus: req.body.paymentStatus
+            ], (err, result) => {
+                if (err) {
+                    return res.status(400).json({ msg: 'Please enter expected paymentStatus values!' });
+                }
+                else {
+                    return res.status(201).json({
+                        id: id,
+                        created_ts: timeStamp,
+                        updated_ts: timeStamp,
+                        owner_id: res.locals.user.id,
+                        vendor: req.body.vendor,
+                        bill_date: req.body.bill_date,
+                        due_date: req.body.due_date,
+                        amount_due: amount,
+                        categories: req.body.categories,
+                        paymentStatus: req.body.paymentStatus
 
-                        });
-                    }
-                });
-    }else{
+                    });
+                }
+            });
+    } else {
         return res.status(400).json({ msg: 'Set content-type' });
     }
 });
@@ -73,11 +77,11 @@ router.get("/:id", checkUser.authenticate, (req, res) => {
                     data[0].bill_date = data[0].bill_date.toISOString().split('T')[0];
                     data[0].due_date = data[0].due_date.toISOString().split('T')[0];
                     data[0].amount_due;
-                    data[0].categories =  JSON.parse(data[0].categories);
+                    data[0].categories = JSON.parse(data[0].categories);
                     data[0].paymentStatus;
                     return res.status(200).json(data[0]);
                 } else {
-                    return res.status(404).json({msg: 'no data with ID found'});
+                    return res.status(404).json({ msg: 'no data with ID found' });
                 }
 
             });
@@ -90,7 +94,7 @@ router.get("/:id", checkUser.authenticate, (req, res) => {
 });
 
 //Get all bills
-router.get("/",checkUser.authenticate, (req, res) => {
+router.get("/", checkUser.authenticate, (req, res) => {
     if (res.locals.user) {
         let contentType = req.headers['content-type'];
         if (contentType == 'application/json') {
@@ -107,7 +111,7 @@ router.get("/",checkUser.authenticate, (req, res) => {
                         data[i].bill_date = data[i].bill_date.toISOString().split('T')[0];
                         data[i].due_date = data[i].due_date.toISOString().split('T')[0];
                         data[i].amount_due;
-                        data[i].categories =  JSON.parse(data[i].categories);
+                        data[i].categories = JSON.parse(data[i].categories);
                         data[i].paymentStatus;
                     }
                     return res.status(200).json(data);
@@ -119,7 +123,7 @@ router.get("/",checkUser.authenticate, (req, res) => {
         } else {
             return res.status(400).json({ msg: 'Set content-type' });
         }
-    } else{
+    } else {
         return res.status(401).json({ msg: 'Authentication error' });
     }
 });
@@ -134,37 +138,37 @@ router.delete('/:id', checkUser.authenticate, (req, res) => {
                         if (err) {
                             return res.status(404).json();
                         } else {
-                            return res.status(200).json({msg: 'Deleted Successfully'});
+                            return res.status(200).json({ msg: 'Deleted Successfully' });
                         }
                     });
                 } else {
-                    return res.status(401).json({msg: 'Authentication Error, check user'});
+                    return res.status(401).json({ msg: 'Authentication Error, check user' });
                 }
             } else {
-                return res.status(404).json({msg: 'No record with this ID found'});
+                return res.status(404).json({ msg: 'No record with this ID found' });
             }
         });
     } else {
-        return res.status(401).json({msg: 'Authentication error'});
+        return res.status(401).json({ msg: 'Authentication error' });
     }
 });
 
 //Change a bill
-router.put("/:id",checkUser.authenticate, validator.validateBill, (req,res) => {
-    if(res.locals.user){
-        if(req.body.owner_id != null || req.body.created_ts != null || req.body.updated_ts != null ||
-            req.body.id != null){
-                return res.status(400).json({ msg: 'Cannot update id, created_ts, updated_ts and owner_id' });
-            } else{
-                mysql.query('select * from UserDB.Bill where id=(?)', [req.params.id], (err, result) => {
-                    if(result[0] != null){
-                        if(result[0].owner_id === res.locals.user.id){
-                            let contentType = req.headers['content-type'];
-                            if(contentType == 'application/json'){
-                                    let updatedTimeStamp = moment().format('YYYY-MM-DD HH:mm:ss');
-                                    let createdTimeStamp = localTime(result[0].created_ts);
-                                    let amount = parseFloat(req.body.amount_due);
-                                    mysql.query(`UPDATE UserDB.Bill SET
+router.put("/:id", checkUser.authenticate, validator.validateBill, (req, res) => {
+    if (res.locals.user) {
+        if (req.body.owner_id != null || req.body.created_ts != null || req.body.updated_ts != null ||
+            req.body.id != null) {
+            return res.status(400).json({ msg: 'Cannot update id, created_ts, updated_ts and owner_id' });
+        } else {
+            mysql.query('select * from UserDB.Bill where id=(?)', [req.params.id], (err, result) => {
+                if (result[0] != null) {
+                    if (result[0].owner_id === res.locals.user.id) {
+                        let contentType = req.headers['content-type'];
+                        if (contentType == 'application/json') {
+                            let updatedTimeStamp = moment().format('YYYY-MM-DD HH:mm:ss');
+                            let createdTimeStamp = localTime(result[0].created_ts);
+                            let amount = parseFloat(req.body.amount_due);
+                            mysql.query(`UPDATE UserDB.Bill SET
                                     vendor = (?),
                                     bill_date = (?),
                                     due_date = (?),
@@ -173,105 +177,131 @@ router.put("/:id",checkUser.authenticate, validator.validateBill, (req,res) => {
                                     paymentStatus = (?),
                                     updated_ts = (?)
                                     WHERE id = (?)`,
-                                    [req.body.vendor,
-                                    req.body.bill_date,
-                                    req.body.due_date,
+                                [req.body.vendor,
+                                req.body.bill_date,
+                                req.body.due_date,
                                     amount,
-                                    JSON.stringify(req.body.categories),
-                                    req.body.paymentStatus,
+                                JSON.stringify(req.body.categories),
+                                req.body.paymentStatus,
                                     updatedTimeStamp,
-                                    req.params.id], (err, results) => {
-                                        if(err){
-                                            return res.status(404).json({ msg: 'Please Enter all details' });
-                                        }else{
-                                            return res.status(201).json({
-                                                id: req.params.id,
-                                                created_ts: createdTimeStamp,
-                                                updated_ts: updatedTimeStamp,
-                                                owner_id: res.locals.user.id,
-                                                vendor: req.body.vendor,
-                                                bill_date: req.body.bill_date,
-                                                due_date: req.body.due_date,
-                                                amount_due: req.body.amount_due,
-                                                categories: req.body.categories,
-                                                paymentStatus: req.body.paymentStatus
-                    
-                                            }); 
-                                        }
-                                    })
-                            }
-                            else{
-                                return res.status(404).json({ msg: 'Set content-type' });
-                            }
+                                req.params.id], (err, results) => {
+                                    if (err) {
+                                        return res.status(404).json({ msg: 'Please Enter all details' });
+                                    } else {
+                                        return res.status(201).json({
+                                            id: req.params.id,
+                                            created_ts: createdTimeStamp,
+                                            updated_ts: updatedTimeStamp,
+                                            owner_id: res.locals.user.id,
+                                            vendor: req.body.vendor,
+                                            bill_date: req.body.bill_date,
+                                            due_date: req.body.due_date,
+                                            amount_due: req.body.amount_due,
+                                            categories: req.body.categories,
+                                            paymentStatus: req.body.paymentStatus
+
+                                        });
+                                    }
+                                })
                         }
-                        else{
-                            return res.status(404).json({ msg: 'Authentication Error, check user' });
+                        else {
+                            return res.status(404).json({ msg: 'Set content-type' });
                         }
                     }
-                    else{
-                        return res.status(404).json({ msg: 'No bill with this ID found' });
+                    else {
+                        return res.status(404).json({ msg: 'Authentication Error, check user' });
                     }
-                })
-            }
-    }else{
+                }
+                else {
+                    return res.status(404).json({ msg: 'No bill with this ID found' });
+                }
+            })
+        }
+    } else {
         return res.status(404).json({ msg: 'Authentication error' });
     }
 });
 
 // Post Attachment to existing bill
- router.post("/:id/file", checkUser.authenticate, upload.single('file'),  (req, res, next) => {
-     let id = uuid();
-     let uploadDate = moment().format('YYYY-MM-DD');
-     mysql.query('select * from UserDB.Bill where id=(?)', [req.params.id], (err, result) => {
+router.post("/:id/file", checkUser.authenticate, upload.single('file'), (req, res, next) => {
+    let id = uuid();
+    let uploadDate = moment().format('YYYY-MM-DD');
+    mysql.query('select * from UserDB.Bill where id=(?)', [req.params.id], (err, result) => {
         if (result[0] != null) {
             if (result[0].owner_id === res.locals.user.id) {
                 if (result[0].attachment != null) {
                     return res.status(400).json({ msg: 'Please delete the previous image before re-uploading' });
                 } else {
                     //console.log(uploadDate);
-                    //console.log(req.file.filename);
+                    //console.log(req);
                     //console.log( req.file.path);
-                    let hash = crypto.createHash('md5').update(req.file.filename).digest('hex');
+                    let hash = crypto.createHash('md5').update(req.file.originalname).digest('hex');
                     let attachment = {
                         'id': id,
-                        'url': req.file.path,
-                        'file_name' : req.file.filename,
-                        'upload_date' : uploadDate
+                        'url': req.file.location,
+                        'file_name': req.file.originalname,
+                        'upload_date': uploadDate
                     };
-                    //console.log(req.file.size);
+                    //console.log(attachment);
                     mysql.query('insert into UserDB.File(`id`,`file_name`,`url`,`upload_date`,`metadata`)values(?,?,?,?,?)'
-                    , [id, req.file.filename, req.file.path, uploadDate, hash], (err, result) => {
-                    if(!err){
-                        mysql.query('UPDATE UserDB.Bill SET attachment=(?) where id=(?)', [JSON.stringify(attachment), req.params.id], (err, result) => {
+                        , [id, req.file.key, req.file.location, uploadDate, hash], (err, result) => {
                             if (!err) {
-                                return res.status(201).json(attachment);
+                                mysql.query('UPDATE UserDB.Bill SET attachment=(?) where id=(?)', [JSON.stringify(attachment), req.params.id], (err, result) => {
+                                    if (!err) {
+                                        let url = req.file.location;
+                                        let params = {
+                                            Bucket: bucket,
+                                            Expires: 120,
+                                            Key: url
+                                        };
+                                        console.log(bucket);
+                                        s3.getSignedUrl('getObject', params, (err, data) => {
+                                            //console.log(data);
+                                            res.status(201).json({ id: id, PresignedUrl: data });
+                                        });
+                                    } else {
+                                        return res.status(500).json({ msg: 'Some error while storing attachment data to DB' });
+                                    }
+                                });
                             } else {
-                                return res.status(500).json({ msg: 'Some error while storing attachment data to DB' });
+                                return res.status(500).json({ msg: 'Unsupported filetype' });
                             }
                         });
-                    }else{
-                        return res.status(500).json({msg: 'Unsupported filetype'});
-                    }
-                });
                 }
-            }else{
+            } else {
                 return res.status(401).json({ msg: 'Unauthorized' });
             }
-        }else{
+        } else {
             return res.status(404).json({ msg: 'Bill Not Found' });
         }
     });
- });
+});
 
- // Get Attachment with attachmentId and BillId
+// Get Attachment with attachmentId and BillId
 router.get('/:billId/file/:fileId', checkUser.authenticate, (req, res) => {
     if (res.locals.user) {
-        mysql.query('select attachment from UserDB.Bill where id=(?) and owner_id=(?)', [req.params.billId, res.locals.user.id], (err, data) => {
-            if (data[0] != null) {
-                if (data[0].attachment != null) {
-                    data[0].attachment = JSON.parse(data[0].attachment);
-                    if (req.params.fileId === data[0].attachment.id) {
-                        return res.status(200).json(data[0].attachment);
+        mysql.query('select attachment from UserDB.Bill where id=(?) and owner_id=(?)', [req.params.billId, res.locals.user.id], (err, result) => {
+            if (result[0] != null) {
+                if (result[0].attachment != null) {
+                    result[0].attachment = JSON.parse(result[0].attachment);
+                    if (req.params.fileId === result[0].attachment.id) {
+                        let url = result[0].attachment.file_name;
+                        let params= {
+                            Bucket: bucket,
+                            Key: url
+                        }
+                        s3.getSignedUrl('getObject', params, (err, data) => {
+                        res.status(200).json({
+                            created_ts: result[0].created_ts,
+                            updated_ts: result[0].updated_ts,
+                            owner_id: result[0].owner_id,
+                            vendor: result[0].vendor,
+                            bill_date: result[0].bill_date,
+                            due_date: result[0].due_date,
+                            amount_due: result[0].amount_due,
+                            presignedURL: data
+                            });
+                        });
                     } else {
                         return res.status(404).json({ msg: 'Image not found' });
                     }
@@ -282,7 +312,7 @@ router.get('/:billId/file/:fileId', checkUser.authenticate, (req, res) => {
                 return res.status(404).json({ msg: 'Bill Not Found!' });
             }
         });
-    }else{
+    } else {
         return res.status(404).json({ msg: 'Authentication error' });
     }
 });
@@ -290,24 +320,42 @@ router.get('/:billId/file/:fileId', checkUser.authenticate, (req, res) => {
 //Delete attachment
 router.delete('/:billId/file/:fileId', checkUser.authenticate, (req, res) => {
     if (res.locals.user) {
-        mysql.query('select attachment from UserDb.Bill where id=(?)', [req.params.billId], (err, data) => {
+        mysql.query('select attachment from UserDB.Bill where id=(?)', [req.params.billId], (err, data) => {
             if (data[0] != null) {
                 if (data[0].attachment != null) {
                     data[0].attachment = JSON.parse(data[0].attachment);
                     if (req.params.fileId === data[0].attachment.id) {
-                        mysql.query(`UPDATE UserDb.Bill SET attachment=(?) where id=(?)`, [null,  req.params.billId], (err, result) => {
+                        mysql.query(`UPDATE UserDB.Bill SET attachment=(?) where id=(?)`, [null, req.params.billId], (err, result) => {
                             if (err) {
                                 return res.status(500).json({ msg: err });
                             } else {
-                                mysql.query(`Select * from UserDb.File where id=(?)`, [req.params.fileId], (err, result) => {
+                                mysql.query(`Select * from UserDB.File where id=(?)`, [req.params.fileId], (err, result) => {
                                     if (err) {
                                         return res.status(500).json({ msg: err });
-                                    }else{
-                                        if(result[0]!= null){
+                                    } else {
+                                        if (result[0] != null) {
                                             let filename = result[0].file_name;
-                                            console.log(filename);
-                                            fs.unlinkSync(DIR+'/'+filename);
-                                            mysql.query(`Delete from UserDb.File where id=(?)`, [req.params.fileId], (err, result) => {
+                                            let url = result[0].url;
+                                            let params = {
+                                                Bucket: bucket,
+                                                Key: filename
+                                            }
+                                            s3.deleteObject({
+                                                Bucket: bucket,
+                                                Key: filename
+                                            },  (err, data) => {
+                                                if (!err) {
+                                                    console.log("Attachment Deleted");
+                                                }
+                                                else{
+                                                    console.log(err);
+                                                }
+                                            });
+                                            mysql.query(`Delete from UserDB.File where id=(?)`, [req.params.fileId], (err, result) => {
+                                                if (err) { console.log(err); }
+                                                else {
+                                                    console.log("Deleted");
+                                                }
                                             });
                                         }
                                     }
