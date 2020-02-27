@@ -2,16 +2,17 @@ const mysql = require('mysql');
 
 //mysql database connection
 var con = mysql.createConnection({
-    host: "localhost",
-    user: "root",
-    password: "jerry1919"
+    host: process.env.RDS_HOSTNAME,
+    user: process.env.RDS_USERNAME,
+    password: process.env.RDS_PASSWORD,
+    database: 'UserDB'
 });
 
 con.connect(function (err) {
     if (err) throw err;
     else {
         console.log("Connected!");
-        con.query("DROP DATABASE IF EXISTS userDB;", function (err, result) {
+        con.query("DROP DATABASE IF EXISTS UserDB;", function (err, result) {
             if (err) throw err;
             else {
                 con.query("CREATE DATABASE UserDB;", function (err, result) {
