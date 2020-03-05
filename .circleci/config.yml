@@ -99,9 +99,9 @@ jobs:
           command: |
             echo "current build number is ${CIRCLE_BUILD_NUM}"
             pwd
-            ls
+            ls -al
             mkdir -p codedeploy_artifact
-            ls
+            ls -al
             pwd
             cd codedeploy_artifact
             cp -r ../webapp .
