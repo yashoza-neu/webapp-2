@@ -99,14 +99,15 @@ jobs:
           command: |
             echo "current build number is ${CIRCLE_BUILD_NUM}"
             pwd
+            ls
             mkdir -p codedeploy_artifact
             pwd
             cd codedeploy_artifact
             cp -r ../webapp .
-            cp ../*.yml .
-            cp ../*.sh .
-            cp ../*.json .
-            cp ../*.md .
+            cp ../../*.yml .
+            cp ../../*.sh .
+            cp ../../*.json .
+            cp ../../*.md .
             cp ../LICENSE .
             cp ../.gitignore .
             pwd
