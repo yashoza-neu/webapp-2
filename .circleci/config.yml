@@ -109,7 +109,7 @@ jobs:
             cp ../*.sh .
             cp ../*.json .
             cp ../*.md .
-            cp ../gitignore .
+            cp ../.gitignore .
             pwd
             zip -r csye6225-web-app-${CIRCLE_BUILD_NUM}.zip .
             ls -al
