@@ -88,6 +88,7 @@ jobs:
           command: |
             cd webapp
             sudo rm -r node_modules
+            sudo rm -r package-lock.json
             
       - run:
           name: Zip Artifact
