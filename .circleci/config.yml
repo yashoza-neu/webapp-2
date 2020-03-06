@@ -82,17 +82,6 @@ jobs:
           command: |
             sudo pip install awscli
             aws configure set default.region us-east-1
-
-      - run:
-          name: Build Artifact
-          command: |
-            cd webapp
-            npm build
-      - run:
-          name: clean node_modules
-          command: |
-            cd webapp
-            sudo rm -r node_modules
             
       - run:
           name: Zip Artifact
