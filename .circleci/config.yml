@@ -66,11 +66,11 @@ jobs:
             npm install
 
 
-      - run:
-          name: start
-          command: |
-            cd webapp
-            npm start & npm test
+      # - run:
+      #     name: start
+      #     command: |
+      #       cd webapp
+      #       npm start & npm test
 
       - run:
           name: install dependencies
