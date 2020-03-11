@@ -1,2 +1,2 @@
 killall node
-sudo rm -rf webapp
+sudo rm -rf webapp/
