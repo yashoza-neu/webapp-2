@@ -1,2 +1,2 @@
 #!/bin/bash
-sudo rm -rf webapp/
+sudo rm -rf /home/ubuntu/webapp
