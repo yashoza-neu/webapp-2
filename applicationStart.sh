@@ -1,2 +1,3 @@
 cd /home/ubuntu/webapp
-nohup npm start &
+npm start 2>&1 &
+pwd
