@@ -8,4 +8,4 @@ sudo npm install
 cd services
 node createSchema.js
 cd ../
-npm start
+sudo npm start
