@@ -5,3 +5,7 @@ aws configure list
 ls
 cd /home/ubuntu/webapp
 sudo npm install
+cd services
+node createSchema.js
+cd ../
+npm start

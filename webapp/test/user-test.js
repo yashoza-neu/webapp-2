@@ -18,7 +18,7 @@ describe("GET Test",function(){
 
     it("Wrong API request --> 404",function(done){
         server
-        .get('/v1/user')
+        .get('/v2/user')
         .expect("Content-type",/json/)
         .expect(404)
         .end(function(err,res){
@@ -31,7 +31,7 @@ describe("GET Test",function(){
     });
 
     it('Unauthorized User --> 401 : Unauthorized ',(done) => {
-        server.get('/v1/user/self',checkUser.authenticate)
+        server.get('/v2/user/self',checkUser.authenticate)
         .send({password :'Aadish@1919',username :'aadish@gmail.com'})     // enter URL for GET
         .expect("Content-type",/json/)
         .expect(401)
@@ -92,7 +92,7 @@ describe('PUT request', () => {
     
 
     it('Unautherized User --> 401 : Unautherized ',(done) => {
-        server.put('/v1/user/self',checkUser.authenticate)
+        server.put('/v2/user/self',checkUser.authenticate)
         .send({password :'Cloud@123',email_address :'cloud5@gmail.com'})     // enter URL for PUT
         .expect("Content-type",/json/)
         .expect(401)
