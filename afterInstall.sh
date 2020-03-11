@@ -2,7 +2,7 @@
 pwd
 ls
 cd /home/ubuntu/webapp
-sudo printenv
+printenv
 sudo npm install
 cd services
 node createSchema.js
