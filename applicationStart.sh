@@ -1,3 +1,3 @@
 cd /home/ubuntu/webapp
-npm start
+npm start &
 exit 0
