@@ -8,5 +8,3 @@ sudo printenv
 sudo npm install
 cd services
 node createSchema.js
-cd ../
-sudo npm start
