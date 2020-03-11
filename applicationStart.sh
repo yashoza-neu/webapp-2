@@ -1,2 +1,2 @@
 cd /home/ubuntu/webapp
-nohup node server.js &
+nohup npm start > output.log &
