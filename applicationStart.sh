@@ -1,3 +1,3 @@
 cd /home/ubuntu/webapp
-npm start &
+nohup npm start > output.log &
 exit 0
