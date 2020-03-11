@@ -4,11 +4,11 @@ files:
   - source: ./
     destination: /home/ubuntu/
 hooks:
-  ApplicationStop:
-    - location: ./applicationStop.sh
+  BeforeInstall:
+    - location: ./beforeInstall.sh
       timeout: 180
       runas: ubuntu
-      
+
   AfterInstall:
     - location: ./afterInstall.sh
       timeout: 180
