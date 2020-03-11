@@ -6,7 +6,7 @@ ls
 cd /home/ubuntu/webapp
 sudo printenv
 sudo npm install
-cd services/
+cd services
 node createSchema.js
 cd ../
 sudo npm start
