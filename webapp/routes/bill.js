@@ -17,7 +17,7 @@ const fs = require('fs')
 const DIR = './images'
 
 let s3 = new aws.S3();
-const bucket = process.env.S3_BUCKET_ADDR;
+const bucket = csye6225test;
 //console.log(process.env.S3_BUCKET_ADDR);
 //Posting a new Bill
 router.post("/", checkUser.authenticate, validator.validateBill, (req, res, next) => {
