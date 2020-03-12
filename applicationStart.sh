@@ -1,3 +1,4 @@
+sudo chown -R ubuntu:ubuntu /home/ubuntu/webapp
 cd /home/ubuntu/webapp
-sudo npm start > output.txt 2>&1 &
+npm start > output.txt 2>&1 &
 pwd
