@@ -1,3 +1,3 @@
 cd /home/ubuntu/webapp
-nohup npm start > output.log 2>&1 &
+sudo nohup npm start > output.txt 2>&1 &
 pwd
