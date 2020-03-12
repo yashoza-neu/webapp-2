@@ -66,11 +66,71 @@ jobs:
             npm install
 
 
+      # - run:
+      #     name: start
+      #     command: |
+      #       cd webapp
+      #       npm start & npm test
+
       - run:
-          name: start
+          name: install dependencies
+          command: |
+            sudo apt-get update && sudo apt-get install wget zip unzip
+
+      - run:
+          name: Install awscli
+          command: |
+            sudo pip install awscli
+            aws configure set default.region us-east-1
+
+      - run:
+          name: clean node_modules
           command: |
             cd webapp
-            npm start & npm test
+            sudo rm -r node_modules
+            sudo rm -r package-lock.json
+            ls -la
+            
+      - run:
+          name: Zip Artifact
+          command: |
+            echo "current build number is ${CIRCLE_BUILD_NUM}"
+            pwd
+            ls -al
+            mkdir -p codedeploy_artifact
+            ls -al
+            pwd
+            cd codedeploy_artifact
+            cp -r ../webapp .
+            cp ../*.yml .
+            cp ../*.sh .
+            cp ../*.json .
+            cp ../*.md .
+            cp ../.gitignore .
+            pwd
+            zip -r csye6225-web-app-${CIRCLE_BUILD_NUM}.zip .
+            ls -al
+            pwd
+            cd ..
+            pwd
+            ls -al
+            cd codedeploy_artifact
+            pwd
+            ls -al
+      - run:
+          name: Upload Artifact to S3
+          command: |
+            pwd
+            ls -al
+            cd codedeploy_artifact
+            aws configure list
+            aws s3 cp csye6225-web-app-${CIRCLE_BUILD_NUM}.zip s3://${CODE_DEPLOY_S3_BUCKET} --sse
+      - run:
+          name: Make CodeDeploy API call
+          command: |
+            aws deploy create-deployment --output json --application-name csye6225-webapp --deployment-config-name CodeDeployDefault.AllAtOnce --deployment-group-name csye6225-webapp-deployment --file-exists-behavior OVERWRITE --s3-location bucket=${CODE_DEPLOY_S3_BUCKET},bundleType=zip,key=csye6225-web-app-${CIRCLE_BUILD_NUM}.zip
+      
+      
 
 workflows:
   version: 2
@@ -84,3 +144,4 @@ workflows:
             branches:
               only:
                 - master
+                - Assignment-7
