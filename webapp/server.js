@@ -7,8 +7,8 @@ const billRouter = require('./routes/bill');
 
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: false }));
-app.use('/v1/user', usersRouter);
-app.use('/v1/bill', billRouter);
+app.use('/v2/user', usersRouter);
+app.use('/v2/bill', billRouter);
 app.use('/api/', billRouter);
 
 //error handling
