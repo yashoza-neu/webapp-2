@@ -12,7 +12,7 @@ var server = supertest.agent("http://localhost:3000");
 describe("post Test",function(){
 
     it('should not allow to post bill',(done) => {
-        server.post('/v1/bill',checkUser.authenticate)
+        server.post('/v2/bill',checkUser.authenticate)
         .send({password :'Cloud@123',username :'cloud200@gmail.com'})     // enter URL for GET
         .expect("Content-type",/json/)
         .expect(401)
@@ -27,7 +27,7 @@ describe("post Test",function(){
 describe("delete Test",function(){
 
     it('should not allow to delete bill',(done) => {
-        server.delete('/v1/bill/',checkUser.authenticate)
+        server.delete('/v2/bill/',checkUser.authenticate)
         .send({password :'Cloud@123',username :'cloud200@gmail.com'})     // enter URL for GET
         .expect("Content-type",/json/)
         .expect(404)
@@ -42,7 +42,7 @@ describe("delete Test",function(){
 describe("put Test",function(){
 
     it('should not allow to update bill',(done) => {
-        server.put('/v1/bill/',checkUser.authenticate)
+        server.put('/v2/bill/',checkUser.authenticate)
         .send({password :'Cloud@123',username :'cloud200@gmail.com'})     // enter URL for GET
         .expect("Content-type",/json/)
         .expect(404)
