@@ -3,7 +3,12 @@ const app = express();
 const bodyParser = require('body-parser');
 const usersRouter = require('./routes/user');
 const billRouter = require('./routes/bill');
-
+const log4js = require('log4js');
+	log4js.configure({
+	  appenders: { logs: { type: 'file', filename: 'logs/webapp.log' } },
+	  categories: { default: { appenders: ['logs'], level: 'info' } }
+    });
+const logger = log4js.getLogger('logs');
 
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: false }));
@@ -29,6 +34,7 @@ app.use((error, req, res, next) => {
 // start server
 const PORT = process.env.PORT || 3000;
 app.listen(PORT,() => {
+    logger.info("Server started")
     console.log(`Server listening on port: ${PORT}`);
 });
 module.exports = app;

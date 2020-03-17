@@ -1,5 +1,10 @@
 const mysql = require('mysql');
-
+const log4js = require('log4js');
+log4js.configure({
+    appenders: { logs: { type: 'file', filename: 'logs/webapp.log' } },
+    categories: { default: { appenders: ['logs'], level: 'info' } }
+});
+const logger = log4js.getLogger('logs');
 //mysql database connection
 var con = mysql.createConnection({
     host: process.env.RDS_HOSTNAME,
@@ -63,6 +68,7 @@ con.connect(function (err) {
                                         con.query(sql2, function (err, result) {
                                             if (err) throw err;
                                             else {
+                                                logger.error('File Table created');
                                                 console.log('File Table created');
                                                 process.exit(0);
                                             }
@@ -71,9 +77,11 @@ con.connect(function (err) {
                                 });
 
                             }
+                            logger.info('User Table created');
                             console.log("User Table created");
                         });
                     }
+                    logger.error('Database Created');
                     console.log("Database created");
                 });
 

@@ -15,9 +15,14 @@ const { check, validationResult } = require('express-validator');
 const { upload, deleteFromS3, getMetaDataFromS3 } = require('../services/image');
 const fs = require('fs')
 const DIR = './images'
-
+const log4js = require('log4js');
+log4js.configure({
+    appenders: { logs: { type: 'file', filename: 'logs/webapp.log' } },
+    categories: { default: { appenders: ['logs'], level: 'info' } }
+});
+const logger = log4js.getLogger('logs');
 let s3 = new aws.S3();
-const bucket = process.env.S3_BUCKET_ADDR;
+const bucket = "csye6225test";
 //console.log(process.env.S3_BUCKET_ADDR);
 //Posting a new Bill
 router.post("/", checkUser.authenticate, validator.validateBill, (req, res, next) => {
@@ -37,6 +42,7 @@ router.post("/", checkUser.authenticate, validator.validateBill, (req, res, next
                 req.body.paymentStatus
             ], (err, result) => {
                 if (err) {
+                    logger.error('Invalid Request body');
                     return res.status(400).json({ msg: 'Please enter expected paymentStatus values!' });
                 }
                 else {
@@ -56,6 +62,7 @@ router.post("/", checkUser.authenticate, validator.validateBill, (req, res, next
                 }
             });
     } else {
+        logger.error('Set content-type');
         return res.status(400).json({ msg: 'Set content-type' });
     }
 });
@@ -67,6 +74,7 @@ router.get("/:id", checkUser.authenticate, (req, res) => {
         if (contentType == 'application/json') {
             mysql.query('select * from UserDB.Bill where id=(?) and owner_id=(?)', [req.params.id, res.locals.user.id], (err, data) => {
                 if (err) {
+                    logger.error('Invalid BillID');
                     return res.status(400).json();
                 }
                 else if (data[0] != null) {
@@ -81,14 +89,17 @@ router.get("/:id", checkUser.authenticate, (req, res) => {
                     data[0].paymentStatus;
                     return res.status(200).json(data[0]);
                 } else {
+                    logger.error('Invalid BillID');
                     return res.status(404).json({ msg: 'no data with ID found' });
                 }
 
             });
         } else {
+            logger.error('Invalid content-type');
             return res.status(400).json({ msg: 'Set content-type' });
         }
     } else {
+        logger.error('Unauthorized');
         return res.status(401).json({ msg: 'Authentication error' });
     }
 });
@@ -100,6 +111,7 @@ router.get("/", checkUser.authenticate, (req, res) => {
         if (contentType == 'application/json') {
             mysql.query('select * from UserDB.Bill where owner_id=(?)', [res.locals.user.id], (err, data) => {
                 if (err) {
+                    logger.error('Invalid OnwerID');
                     return res.status(400).json();
                 }
                 else if (data[0] != null) {
@@ -114,6 +126,7 @@ router.get("/", checkUser.authenticate, (req, res) => {
                         data[i].categories = JSON.parse(data[i].categories);
                         data[i].paymentStatus;
                     }
+                    logger.info('Request Valid');
                     return res.status(200).json(data);
                 } else {
                     return res.status(404).json({ msg: 'No data found for user' });
@@ -121,9 +134,11 @@ router.get("/", checkUser.authenticate, (req, res) => {
 
             });
         } else {
+            logger.error('Invalid content-type');
             return res.status(400).json({ msg: 'Set content-type' });
         }
     } else {
+        logger.error('Unauthorized');
         return res.status(401).json({ msg: 'Authentication error' });
     }
 });
@@ -136,19 +151,24 @@ router.delete('/:id', checkUser.authenticate, (req, res) => {
                 if (result[0].owner_id === res.locals.user.id) {
                     mysql.query('delete from UserDB.Bill where id=(?)', [req.params.id], (err, result) => {
                         if (err) {
+                            logger.error('Bill not found!');
                             return res.status(404).json();
                         } else {
+                            logger.info('Bill Deleted');
                             return res.status(200).json({ msg: 'Deleted Successfully' });
                         }
                     });
                 } else {
+                    logger.error('Unauthorized');
                     return res.status(401).json({ msg: 'Authentication Error, check user' });
                 }
             } else {
+                logger.error('Invalid Request body');
                 return res.status(404).json({ msg: 'No record with this ID found' });
             }
         });
     } else {
+        logger.error('Invalid Request body');
         return res.status(401).json({ msg: 'Authentication error' });
     }
 });
@@ -158,6 +178,7 @@ router.put("/:id", checkUser.authenticate, validator.validateBill, (req, res) =>
     if (res.locals.user) {
         if (req.body.owner_id != null || req.body.created_ts != null || req.body.updated_ts != null ||
             req.body.id != null) {
+            logger.error('Invalid Request body');
             return res.status(400).json({ msg: 'Cannot update id, created_ts, updated_ts and owner_id' });
         } else {
             mysql.query('select * from UserDB.Bill where id=(?)', [req.params.id], (err, result) => {
@@ -186,6 +207,7 @@ router.put("/:id", checkUser.authenticate, validator.validateBill, (req, res) =>
                                     updatedTimeStamp,
                                 req.params.id], (err, results) => {
                                     if (err) {
+                                        logger.error('Invalid Request body');
                                         return res.status(404).json({ msg: 'Please Enter all details' });
                                     } else {
                                         return res.status(201).json({
@@ -205,14 +227,17 @@ router.put("/:id", checkUser.authenticate, validator.validateBill, (req, res) =>
                                 })
                         }
                         else {
+                            logger.error('Invalid Request body');
                             return res.status(404).json({ msg: 'Set content-type' });
                         }
                     }
                     else {
+                        logger.error('Unauthorized');
                         return res.status(404).json({ msg: 'Authentication Error, check user' });
                     }
                 }
                 else {
+                    logger.error('Bill not found');
                     return res.status(404).json({ msg: 'No bill with this ID found' });
                 }
             })
@@ -230,6 +255,7 @@ router.post("/:id/file", checkUser.authenticate, upload.single('file'), (req, re
         if (result[0] != null) {
             if (result[0].owner_id === res.locals.user.id) {
                 if (result[0].attachment != null) {
+                    logger.error('Bill already exists');
                     return res.status(400).json({ msg: 'Please delete the previous image before re-uploading' });
                 } else {
                     //console.log(uploadDate);
@@ -260,18 +286,22 @@ router.post("/:id/file", checkUser.authenticate, upload.single('file'), (req, re
                                             res.status(201).json({ id: id, PresignedUrl: data });
                                         });
                                     } else {
+                                        logger.error('Attachment uploading error');
                                         return res.status(500).json({ msg: 'Some error while storing attachment data to DB' });
                                     }
                                 });
                             } else {
+                                logger.error('Invalid attachment type');
                                 return res.status(500).json({ msg: 'Unsupported filetype' });
                             }
                         });
                 }
             } else {
+                logger.error('Unauthorized');
                 return res.status(401).json({ msg: 'Unauthorized' });
             }
         } else {
+            logger.error('Bill not found');
             return res.status(404).json({ msg: 'Bill Not Found' });
         }
     });
@@ -286,33 +316,38 @@ router.get('/:billId/file/:fileId', checkUser.authenticate, (req, res) => {
                     result[0].attachment = JSON.parse(result[0].attachment);
                     if (req.params.fileId === result[0].attachment.id) {
                         let url = result[0].attachment.file_name;
-                        let params= {
+                        let params = {
                             Bucket: bucket,
                             Key: url
                         }
                         s3.getSignedUrl('getObject', params, (err, data) => {
-                        res.status(200).json({
-                            created_ts: result[0].created_ts,
-                            updated_ts: result[0].updated_ts,
-                            owner_id: result[0].owner_id,
-                            vendor: result[0].vendor,
-                            bill_date: result[0].bill_date,
-                            due_date: result[0].due_date,
-                            amount_due: result[0].amount_due,
-                            presignedURL: data
+                            res.status(200).json({
+                                created_ts: result[0].created_ts,
+                                updated_ts: result[0].updated_ts,
+                                owner_id: result[0].owner_id,
+                                vendor: result[0].vendor,
+                                bill_date: result[0].bill_date,
+                                due_date: result[0].due_date,
+                                amount_due: result[0].amount_due,
+                                presignedURL: data
                             });
                         });
+                        logger.info('Bill found');
                     } else {
+                        logger.error('Image not found');
                         return res.status(404).json({ msg: 'Image not found' });
                     }
                 } else {
+                    logger.error('Image not found');
                     return res.status(404).json({ msg: 'Image not found!' });
                 }
             } else {
+                logger.error('Bill not found');
                 return res.status(404).json({ msg: 'Bill Not Found!' });
             }
         });
     } else {
+        logger.error('Unauthorized');
         return res.status(404).json({ msg: 'Authentication error' });
     }
 });
@@ -327,6 +362,7 @@ router.delete('/:billId/file/:fileId', checkUser.authenticate, (req, res) => {
                     if (req.params.fileId === data[0].attachment.id) {
                         mysql.query(`UPDATE UserDB.Bill SET attachment=(?) where id=(?)`, [null, req.params.billId], (err, result) => {
                             if (err) {
+                                logger.error('Bill not found');
                                 return res.status(500).json({ msg: err });
                             } else {
                                 mysql.query(`Select * from UserDB.File where id=(?)`, [req.params.fileId], (err, result) => {
@@ -343,17 +379,22 @@ router.delete('/:billId/file/:fileId', checkUser.authenticate, (req, res) => {
                                             s3.deleteObject({
                                                 Bucket: bucket,
                                                 Key: filename
-                                            },  (err, data) => {
+                                            }, (err, data) => {
                                                 if (!err) {
+                                                    logger.info('Attachment Deleted');
                                                     console.log("Attachment Deleted");
                                                 }
-                                                else{
+                                                else {
+                                                    logger.error('Error updating bill');
                                                     console.log(err);
                                                 }
                                             });
                                             mysql.query(`Delete from UserDB.File where id=(?)`, [req.params.fileId], (err, result) => {
-                                                if (err) { console.log(err); }
+                                                if (err) { 
+                                                    logger.error('Error');
+                                                    console.log(err); }
                                                 else {
+                                                    logger.info('Bill Deleted');
                                                     console.log("Deleted");
                                                 }
                                             });
@@ -365,10 +406,12 @@ router.delete('/:billId/file/:fileId', checkUser.authenticate, (req, res) => {
                         });
 
                     } else {
+                        logger.error('Attachment not found');
                         return res.status(400).json({ msg: 'Attachment Not Found!' });
                     }
                 }
                 else {
+                    logger.error('Attachment not found');
                     return res.status(404).json({ msg: 'Attachment Not Found!' });
                 }
             } else {
@@ -377,6 +420,7 @@ router.delete('/:billId/file/:fileId', checkUser.authenticate, (req, res) => {
         });
     }
     else {
+        logger.error('Unauthorized');
         return res.status(401).json({ msg: 'User unauthorized!' });
     }
 });
