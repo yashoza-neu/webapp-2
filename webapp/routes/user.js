@@ -14,6 +14,8 @@ log4js.configure({
      categories: { default: { appenders: ['logs'], level: 'info' } }
 });
 const logger = log4js.getLogger('logs');
+const SDC = require('statsd-client'),
+    sdc = new SDC({ host: 'localhost', port: 8125 });
 
 // protected routes
 
