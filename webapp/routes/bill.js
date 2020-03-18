@@ -50,6 +50,7 @@ router.post("/", checkUser.authenticate, validator.validateBill, (req, res, next
                     return res.status(400).json({ msg: 'Please enter expected paymentStatus values!' });
                 }
                 else {
+                    logger.info('Bill posted');
                     return res.status(201).json({
                         id: id,
                         created_ts: timeStamp,
@@ -94,6 +95,7 @@ router.get("/:id", checkUser.authenticate, (req, res) => {
                     data[0].amount_due;
                     data[0].categories = JSON.parse(data[0].categories);
                     data[0].paymentStatus;
+                    logger.info('Bill get');
                     return res.status(200).json(data[0]);
                 } else {
                     logger.error('Invalid BillID');
@@ -226,6 +228,7 @@ router.put("/:id", checkUser.authenticate, validator.validateBill, (req, res) =>
                                         logger.error('Invalid Request body');
                                         return res.status(404).json({ msg: 'Please Enter all details' });
                                     } else {
+                                        logger.info('Bill updated');
                                         return res.status(201).json({
                                             id: req.params.id,
                                             created_ts: createdTimeStamp,
@@ -302,6 +305,7 @@ router.post("/:id/file", checkUser.authenticate, upload.single('file'), (req, re
                                         console.log(bucket);
                                         s3.getSignedUrl('getObject', params, (err, data) => {
                                             //console.log(data);
+                                            logger.info('Bill Attachment posted');
                                             res.status(201).json({ id: id, PresignedUrl: data });
                                         });
                                     } else {
@@ -343,6 +347,7 @@ router.get('/:billId/file/:fileId', checkUser.authenticate, (req, res) => {
                             Key: url
                         }
                         s3.getSignedUrl('getObject', params, (err, data) => {
+                            logger.info('Bill posted');
                             res.status(200).json({
                                 created_ts: result[0].created_ts,
                                 updated_ts: result[0].updated_ts,
@@ -392,6 +397,7 @@ router.delete('/:billId/file/:fileId', checkUser.authenticate, (req, res) => {
                             } else {
                                 mysql.query(`Select * from UserDB.File where id=(?)`, [req.params.fileId], (err, result) => {
                                     if (err) {
+                                        logger.error('Bill Not found');
                                         return res.status(500).json({ msg: err });
                                     } else {
                                         if (result[0] != null) {
