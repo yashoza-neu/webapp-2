@@ -21,11 +21,15 @@ log4js.configure({
     categories: { default: { appenders: ['logs'], level: 'info' } }
 });
 const logger = log4js.getLogger('logs');
+const SDC = require('statsd-client'),
+    sdc = new SDC({ host: 'localhost', port: 8125 });
 let s3 = new aws.S3();
-const bucket = "csye6225test";
+const bucket = process.env.S3_BUCKET_ADDR;
 //console.log(process.env.S3_BUCKET_ADDR);
 //Posting a new Bill
 router.post("/", checkUser.authenticate, validator.validateBill, (req, res, next) => {
+    sdc.increment('POST Bill Triggered');
+    let timer = new Date();
     let contentType = req.headers['content-type'];
     if (contentType == 'application/json') {
         let id = uuid();
@@ -65,10 +69,13 @@ router.post("/", checkUser.authenticate, validator.validateBill, (req, res, next
         logger.error('Set content-type');
         return res.status(400).json({ msg: 'Set content-type' });
     }
+    sdc.timing('post.bill.time', timer);
 });
 
 //Get a bill
 router.get("/:id", checkUser.authenticate, (req, res) => {
+    sdc.increment('GET Bill Triggered');
+    let timer = new Date();
     if (res.locals.user) {
         let contentType = req.headers['content-type'];
         if (contentType == 'application/json') {
@@ -102,10 +109,13 @@ router.get("/:id", checkUser.authenticate, (req, res) => {
         logger.error('Unauthorized');
         return res.status(401).json({ msg: 'Authentication error' });
     }
+    sdc.timing('get.bill.time', timer);
 });
 
 //Get all bills
 router.get("/", checkUser.authenticate, (req, res) => {
+    sdc.increment('GET all Bills Triggered');
+    let timer = new Date();
     if (res.locals.user) {
         let contentType = req.headers['content-type'];
         if (contentType == 'application/json') {
@@ -141,10 +151,13 @@ router.get("/", checkUser.authenticate, (req, res) => {
         logger.error('Unauthorized');
         return res.status(401).json({ msg: 'Authentication error' });
     }
+    sdc.timing('get.bill.all.time', timer);
 });
 
 //Delete a Bill
 router.delete('/:id', checkUser.authenticate, (req, res) => {
+    sdc.increment('DELETE Bill Triggered');
+    let timer = new Date();
     if (res.locals.user) {
         mysql.query('select * from UserDB.Bill where id=(?)', [req.params.id], (err, result) => {
             if (result[0] != null) {
@@ -171,10 +184,13 @@ router.delete('/:id', checkUser.authenticate, (req, res) => {
         logger.error('Invalid Request body');
         return res.status(401).json({ msg: 'Authentication error' });
     }
+    sdc.timing('delete.bill.time', timer);
 });
 
 //Change a bill
 router.put("/:id", checkUser.authenticate, validator.validateBill, (req, res) => {
+    sdc.increment('PUT Bill Triggered');
+    let timer = new Date();
     if (res.locals.user) {
         if (req.body.owner_id != null || req.body.created_ts != null || req.body.updated_ts != null ||
             req.body.id != null) {
@@ -245,12 +261,15 @@ router.put("/:id", checkUser.authenticate, validator.validateBill, (req, res) =>
     } else {
         return res.status(404).json({ msg: 'Authentication error' });
     }
+    sdc.timing('put.bill.time', timer);
 });
 
 // Post Attachment to existing bill
 router.post("/:id/file", checkUser.authenticate, upload.single('file'), (req, res, next) => {
     let id = uuid();
     let uploadDate = moment().format('YYYY-MM-DD');
+    sdc.increment('Post Bill Attachment Triggered');
+    let timer = new Date();
     mysql.query('select * from UserDB.Bill where id=(?)', [req.params.id], (err, result) => {
         if (result[0] != null) {
             if (result[0].owner_id === res.locals.user.id) {
@@ -305,10 +324,13 @@ router.post("/:id/file", checkUser.authenticate, upload.single('file'), (req, re
             return res.status(404).json({ msg: 'Bill Not Found' });
         }
     });
+    sdc.timing('post.bill.attachment.time', timer);
 });
 
 // Get Attachment with attachmentId and BillId
 router.get('/:billId/file/:fileId', checkUser.authenticate, (req, res) => {
+    sdc.increment('Get Bill Attachment Triggered');
+    let timer = new Date();
     if (res.locals.user) {
         mysql.query('select attachment from UserDB.Bill where id=(?) and owner_id=(?)', [req.params.billId, res.locals.user.id], (err, result) => {
             if (result[0] != null) {
@@ -350,10 +372,13 @@ router.get('/:billId/file/:fileId', checkUser.authenticate, (req, res) => {
         logger.error('Unauthorized');
         return res.status(404).json({ msg: 'Authentication error' });
     }
+    sdc.timing('get.bill.attachment.time', timer);
 });
 
 //Delete attachment
 router.delete('/:billId/file/:fileId', checkUser.authenticate, (req, res) => {
+    sdc.increment('DELETE Bill Triggered');
+    let timer = new Date();
     if (res.locals.user) {
         mysql.query('select attachment from UserDB.Bill where id=(?)', [req.params.billId], (err, data) => {
             if (data[0] != null) {
@@ -390,9 +415,10 @@ router.delete('/:billId/file/:fileId', checkUser.authenticate, (req, res) => {
                                                 }
                                             });
                                             mysql.query(`Delete from UserDB.File where id=(?)`, [req.params.fileId], (err, result) => {
-                                                if (err) { 
+                                                if (err) {
                                                     logger.error('Error');
-                                                    console.log(err); }
+                                                    console.log(err);
+                                                }
                                                 else {
                                                     logger.info('Bill Deleted');
                                                     console.log("Deleted");
@@ -423,6 +449,7 @@ router.delete('/:billId/file/:fileId', checkUser.authenticate, (req, res) => {
         logger.error('Unauthorized');
         return res.status(401).json({ msg: 'User unauthorized!' });
     }
+    sdc.timing('delete.bill.time', timer);
 });
 
 module.exports = router;

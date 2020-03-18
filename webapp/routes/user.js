@@ -10,8 +10,8 @@ const saltRounds = 10;
 const checkUser = require('../services/auth');
 const log4js = require('log4js');
 log4js.configure({
-    appenders: { logs: { type: 'file', filename: 'logs/webapp.log' } },
-    categories: { default: { appenders: ['logs'], level: 'info' } }
+     appenders: { logs: { type: 'file', filename: 'logs/webapp.log' } },
+     categories: { default: { appenders: ['logs'], level: 'info' } }
 });
 const logger = log4js.getLogger('logs');
 
@@ -19,6 +19,8 @@ const logger = log4js.getLogger('logs');
 
 // To update the user information
 router.put('/self', checkUser.authenticate, (req, res) => {
+     sdc.increment('PUT User Triggered');
+     let timer = new Date();
      if (res.locals.user) {
           if (Object.keys(req.body).length > 0) {
                let contentType = req.headers['content-type'];
@@ -63,21 +65,27 @@ router.put('/self', checkUser.authenticate, (req, res) => {
           logger.error('Unauthorized');
           res.status(401).json({ msg: 'Unauthorized' });
      }
+     sdc.timing('put.user.time', timer);
 });
 
 // To get the user information
 router.get('/self', checkUser.authenticate, (req, res) => {
+     sdc.increment('GET User Triggered');
+     let timer = new Date();
      if (res.locals.user) {
           res.statusCode = 200;
           res.setHeader('Content-Type', 'application/json');
           res.json(res.locals.user);
 
      }
+     sdc.timing('get.user.time', timer);
 });
 
 
 
 router.post('/', (req, res, next) => {
+     sdc.increment('POST User Triggered');
+     let timer = new Date();
      let contentType = req.headers['content-type'];
      if (contentType == 'application/json') {
           let first_name = req.body.first_name;
@@ -133,5 +141,6 @@ router.post('/', (req, res, next) => {
           logger.error('Invalid Request body');
           res.status(400).json({ msg: 'Request type must be JSON!' });
      }
+     sdc.timing('post.user.time', timer);
 });
 module.exports = router;
