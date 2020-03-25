@@ -16,7 +16,7 @@ var con = mysql.createConnection({
 con.connect(function (err) {
     console.log("Connected!");
     logger.log("Connected to DB")
-    var sql = `CREATE TABLE UserDB.User(
+    var sql = `CREATE TABLE IF NOT EXISTS UserDB.User(
             id varchar(36) NOT NULL,
             first_name varchar(45) NOT NULL,
             last_name varchar(45) NOT NULL,
@@ -30,7 +30,7 @@ con.connect(function (err) {
     con.query(sql, function (err, result) {
         if (err) throw err;
         else {
-            var sql1 = `CREATE TABLE UserDB.Bill (
+            var sql1 = `CREATE TABLE IF NOT EXISTS UserDB.Bill (
                                     id VARCHAR(36) NOT NULL COMMENT 'Creating Bill',
                                     created_ts DATETIME NOT NULL,
                                     updated_ts DATETIME NOT NULL,
@@ -49,7 +49,7 @@ con.connect(function (err) {
                 if (err) throw err;
                 else {
                     console.log('Bill Table created');
-                    var sql2 = `CREATE TABLE UserDB.File (
+                    var sql2 = `CREATE TABLE IF NOT EXISTS UserDB.File (
                                             file_name VARCHAR(255) NOT NULL,
                                             id VARCHAR(255) NOT NULL,
                                             url VARCHAR(255) NOT NULL,
