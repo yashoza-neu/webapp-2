@@ -83,7 +83,9 @@ router.get('/self', checkUser.authenticate, (req, res) => {
      sdc.timing('get.user.time', timer);
 });
 
-
+router.get('/', (req,res) =>{
+     return res.status(200).json({msg : 'health check passed'});
+});
 
 router.post('/', (req, res, next) => {
      sdc.increment('POST User Triggered');
