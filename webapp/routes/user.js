@@ -79,6 +79,7 @@ router.get('/self', checkUser.authenticate, (req, res) => {
           res.json(res.locals.user);
 
      }
+     logger.info('Get User Triggered');
      sdc.timing('get.user.time', timer);
 });
 
