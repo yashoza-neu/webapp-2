@@ -15,21 +15,6 @@ const main =require('../routes/user.js');
 
 describe("GET Test",function(){
 
-
-    it("Wrong API request --> 404",function(done){
-        server
-        .get('/v1/user')
-        .expect("Content-type",/json/)
-        .expect(404)
-        .end(function(err,res){
-            var json_body = res.body;
-            var msg = json_body.error;
-            var code = msg.messsage;
-            expect(code).to.equal('NOT FOUND');
-            done();
-        });
-    });
-
     it('Unauthorized User --> 401 : Unauthorized ',(done) => {
         server.get('/v1/user/self',checkUser.authenticate)
         .send({password :'Aadish@1919',username :'aadish@gmail.com'})     // enter URL for GET
@@ -48,21 +33,6 @@ describe("GET Test",function(){
 
 //--------------------------Invalid URL----------------------------------
 describe('Basic URL Test', () => {
-
-    it('Main page content',function(done){
-        this.timeout(15000);
-        setTimeout(done, 15000);
-        request('http://localhost:3000',function(error,response,body){
-            var json_body = JSON.parse(body);
-            //console.log(json_body);
-            var msg = json_body.error;
-            //console.log(msg);
-            var code = msg.messsage;
-            //console.log(code);
-            expect(code).to.equal('NOT FOUND');
-            done();
-        });
-    });
 
 
     it('Invalid URL', function(done) {

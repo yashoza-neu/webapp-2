@@ -139,6 +139,7 @@ router.get("/", checkUser.authenticate, (req, res) => {
                         data[i].paymentStatus;
                     }
                     logger.info('Request Valid');
+                    logger.info('Get All Bills Triggered')
                     return res.status(200).json(data);
                 } else {
                     return res.status(404).json({ msg: 'No data found for user' });

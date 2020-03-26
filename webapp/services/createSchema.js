@@ -14,16 +14,9 @@ var con = mysql.createConnection({
 });
 
 con.connect(function (err) {
-    if (err) throw err;
-    else {
-        console.log("Connected!");
-        con.query("DROP DATABASE IF EXISTS UserDB;", function (err, result) {
-            if (err) throw err;
-            else {
-                con.query("CREATE DATABASE UserDB;", function (err, result) {
-                    if (err) throw err;
-                    else {
-                        var sql = `CREATE TABLE UserDB.User(
+    console.log("Connected!");
+    logger.log("Connected to DB")
+    var sql = `CREATE TABLE IF NOT EXISTS UserDB.User(
             id varchar(36) NOT NULL,
             first_name varchar(45) NOT NULL,
             last_name varchar(45) NOT NULL,
@@ -34,10 +27,10 @@ con.connect(function (err) {
             PRIMARY KEY (id),
             UNIQUE KEY email_address_UNIQUE (email_address)
           ) ENGINE=InnoDB DEFAULT CHARSET=latin1;`;
-                        con.query(sql, function (err, result) {
-                            if (err) throw err;
-                            else {
-                                var sql1 = `CREATE TABLE UserDB.Bill (
+    con.query(sql, function (err, result) {
+        if (err) throw err;
+        else {
+            var sql1 = `CREATE TABLE IF NOT EXISTS UserDB.Bill (
                                     id VARCHAR(36) NOT NULL COMMENT 'Creating Bill',
                                     created_ts DATETIME NOT NULL,
                                     updated_ts DATETIME NOT NULL,
@@ -52,11 +45,11 @@ con.connect(function (err) {
                                     PRIMARY KEY (id),
                                       FOREIGN KEY (owner_id)
                                       REFERENCES UserDB.User (id));`
-                                con.query(sql1, function (err, result) {
-                                    if (err) throw err;
-                                    else {
-                                        console.log('Bill Table created');
-                                        var sql2 = `CREATE TABLE UserDB.File (
+            con.query(sql1, function (err, result) {
+                if (err) throw err;
+                else {
+                    console.log('Bill Table created');
+                    var sql2 = `CREATE TABLE IF NOT EXISTS UserDB.File (
                                             file_name VARCHAR(255) NOT NULL,
                                             id VARCHAR(255) NOT NULL,
                                             url VARCHAR(255) NOT NULL,
@@ -65,28 +58,21 @@ con.connect(function (err) {
                                             PRIMARY KEY (id))
                                             ENGINE = InnoDB
                                             DEFAULT CHARACTER SET = latin1;`
-                                        con.query(sql2, function (err, result) {
-                                            if (err) throw err;
-                                            else {
-                                                logger.error('File Table created');
-                                                console.log('File Table created');
-                                                process.exit(0);
-                                            }
-                                        });
-                                    }
-                                });
+                    con.query(sql2, function (err, result) {
+                        if (err) throw err;
+                        else {
+                            logger.error('File Table created');
+                            console.log('File Table created');
+                            process.exit(0);
+                        }
+                    });
+                }
+            });
 
-                            }
-                            logger.info('User Table created');
-                            console.log("User Table created");
-                        });
-                    }
-                    logger.error('Database Created');
-                    console.log("Database created");
-                });
-
-            }
-
-        });
-    }
+        }
+        logger.info('User Table created');
+        console.log("User Table created");
+    });
+    logger.error('Database Created');
+    console.log("Database created");
 });
