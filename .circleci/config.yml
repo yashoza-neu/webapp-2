@@ -144,3 +144,4 @@ workflows:
             branches:
               only:
                 - master
+                - Assignment-9
