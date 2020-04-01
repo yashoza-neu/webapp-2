@@ -3,7 +3,7 @@ const multerS3 = require('multer-s3');
 const aws = require('aws-sdk');
 const s3 = new aws.S3();
 var dotenv = require('dotenv');
-const bucket = process.env.S3_BUCKET_ADDR;
+const bucket = "process.env.S3_BUCKET_ADDR";
 aws.config.update({region: 'us-east-1'});
 aws.config.getCredentials(function(err) {
   if (err) console.log(err.stack);

@@ -514,16 +514,19 @@ var receiveMessageParams = {
 };
 
 function getMessages() {
+    logger.info("getMessage from queue hit")
     sqs.receiveMessage(receiveMessageParams, receiveMessageCallback);
 }
 
 function receiveMessageCallback(err, data) {
     //console.log(data);
+    logger.info("Data ReceiveMessage: ",data)
     if (data && data.Messages && data.Messages.length > 0) {
 
         for (var i = 0; i < data.Messages.length; i++) {
             //console.log("do something with the message here...");
             logger.info(data.Messages[0].MessageAttributes.Email.StringValue)
+            logger.info(data.Messages[0].MessageAttributes.DueDays.StringValue)
             // Delete the message when we've successfully processed it
             var email = data.Messages[0].MessageAttributes.Email.StringValue
             var dueDays = data.Messages[0].MessageAttributes.DueDays.StringValue
@@ -540,14 +543,13 @@ function receiveMessageCallback(err, data) {
                     //     return new Date(myDate.getTime() + days*24*60*60*1000);
                     //     }
 
-                    // console.log(addDays(someDate,4))
-                    var someDate = new Date();
-                    var numberOfDaysToAdd = dueDays;
-                    someDate.setDate(someDate.getDate() + numberOfDaysToAdd); //number  of days to add, e.x. 15 days
+                    var someDate = new Date()
+                    someDate.setDate(someDate.getDate() + dueDays);
+                    logger.info(dueDays)
                     var dateFormated = someDate.toISOString().substr(0, 10);
-                    console.log(dateFormated);
+                    logger.log("date x="+dateFormated);
                     var todayDate = new Date().toISOString().split('T')[0];
-                    console.log(todayDate)
+                    logger.info(todayDate)
 
                     mysql.query(`select id from UserDB.Bill where owner_id=(?) and due_date BETWEEN (?) AND (?)`, [data[0].id, todayDate, dateFormated], (err, result) => {
                         if (result != null) {
@@ -578,6 +580,7 @@ function receiveMessageCallback(err, data) {
                                     };
                                     console.log(params.Message)
                                     logger.info('params --- ' + params);
+                                    logger.info(params.Message)
                                     sns.publish(params, (err, data) => {
                                         if (err) {
                                             logger.error('error in SNS publish', err);
