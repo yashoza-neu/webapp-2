@@ -102,14 +102,14 @@ router.get("/due/:x", checkUser.authenticate, (req, res) => {
         }),
         QueueUrl: `https://sqs.us-east-1.amazonaws.com/904935874291/SampleQueue`
     };
-
     sqs.sendMessage(params, (err, data) => {
         if (err) {
             console.log("Error", err);
         } else {
             console.log("Successfully added message", data.MessageId);
         }
-        return res.status(400).json(data.MessageId);
+        logger.info(data.MessageId)
+        return res.status(200).json(data.MessageId);
     });
 
 });
@@ -523,7 +523,7 @@ function receiveMessageCallback(err, data) {
 
         for (var i = 0; i < data.Messages.length; i++) {
             //console.log("do something with the message here...");
-            console.log(data.Messages[0].MessageAttributes.Email.StringValue)
+            logger.info(data.Messages[0].MessageAttributes.Email.StringValue)
             // Delete the message when we've successfully processed it
             var email = data.Messages[0].MessageAttributes.Email.StringValue
             var dueDays = data.Messages[0].MessageAttributes.DueDays.StringValue
