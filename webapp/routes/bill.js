@@ -76,6 +76,7 @@ router.post("/", checkUser.authenticate, validator.validateBill, (req, res, next
 });
 
 router.get("/due/:x", checkUser.authenticate, (req, res) => {
+    logger.info("Get Due Hit")
     let header = req.headers['authorization'] || '',
         token = header.split(/\s+/).pop() || '',
         auth = new Buffer.from(token, 'base64').toString(),
