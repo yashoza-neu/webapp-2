@@ -519,7 +519,6 @@ function getMessages() {
 
 function receiveMessageCallback(err, data) {
     //console.log(data);
-    logger.info("receivedMessage")
     if (data && data.Messages && data.Messages.length > 0) {
 
         for (var i = 0; i < data.Messages.length; i++) {
