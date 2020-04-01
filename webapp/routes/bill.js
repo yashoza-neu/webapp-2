@@ -102,16 +102,17 @@ router.get("/due/:x", checkUser.authenticate, (req, res) => {
         }),
         QueueUrl: `https://sqs.us-east-1.amazonaws.com/904935874291/SampleQueue`
     };
+    logger.info("Added to queue")
     sqs.sendMessage(params, (err, data) => {
         if (err) {
+            logger.error(err)
             console.log("Error", err);
         } else {
+            logger.info("sent message to queue")
             console.log("Successfully added message", data.MessageId);
         }
-        logger.info(data.MessageId)
-        return res.status(200).json(data.MessageId);
     });
-
+    return res.status(200).json("Email with Bills will be sent shortly");
 });
 
 //Get a bill
@@ -518,7 +519,7 @@ function getMessages() {
 
 function receiveMessageCallback(err, data) {
     //console.log(data);
-
+    logger.info("receivedMessage")
     if (data && data.Messages && data.Messages.length > 0) {
 
         for (var i = 0; i < data.Messages.length; i++) {
@@ -548,7 +549,7 @@ function receiveMessageCallback(err, data) {
                     console.log(dateFormated);
                     var todayDate = new Date().toISOString().split('T')[0];
                     console.log(todayDate)
-                    
+
                     mysql.query(`select id from UserDB.Bill where owner_id=(?) and due_date BETWEEN (?) AND (?)`, [data[0].id, todayDate, dateFormated], (err, result) => {
                         if (result != null) {
                             //console.log(result)
