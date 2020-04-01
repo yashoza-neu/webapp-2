@@ -514,13 +514,11 @@ var receiveMessageParams = {
 };
 
 function getMessages() {
-    logger.info("getMessage from queue hit")
     sqs.receiveMessage(receiveMessageParams, receiveMessageCallback);
 }
 
 function receiveMessageCallback(err, data) {
     //console.log(data);
-    logger.info("Data ReceiveMessage: ",data)
     if (data && data.Messages && data.Messages.length > 0) {
 
         for (var i = 0; i < data.Messages.length; i++) {
