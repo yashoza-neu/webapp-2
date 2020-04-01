@@ -49,7 +49,7 @@
               </elementProp>
             </collectionProp>
           </elementProp>
-          <stringProp name="HTTPSampler.domain">dev.yashdoza.me</stringProp>
+          <stringProp name="HTTPSampler.domain">prod.yashdoza.me</stringProp>
           <stringProp name="HTTPSampler.port"></stringProp>
           <stringProp name="HTTPSampler.protocol">http</stringProp>
           <stringProp name="HTTPSampler.contentEncoding"></stringProp>
@@ -104,7 +104,7 @@
           <AuthManager guiclass="AuthPanel" testclass="AuthManager" testname="HTTP Authorization Manager" enabled="true">
             <collectionProp name="AuthManager.auth_list">
               <elementProp name="" elementType="Authorization">
-                <stringProp name="Authorization.url">http://dev.yashdoza.me/v1/bill</stringProp>
+                <stringProp name="Authorization.url">http://prod.yashdoza.me/v1/bill</stringProp>
                 <stringProp name="Authorization.username">yash@gmail.com</stringProp>
                 <stringProp name="Authorization.password">Yash@1234</stringProp>
                 <stringProp name="Authorization.domain"></stringProp>

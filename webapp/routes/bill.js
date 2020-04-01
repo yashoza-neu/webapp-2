@@ -25,6 +25,8 @@ const SDC = require('statsd-client'),
     sdc = new SDC({ host: 'localhost', port: 8125 });
 let s3 = new aws.S3();
 const bucket = process.env.S3_BUCKET_ADDR;
+const sqs = new aws.SQS({ apiVersion: '2012-11-05' });
+const { Consumer } = require('sqs-consumer');
 //console.log(process.env.S3_BUCKET_ADDR);
 //Posting a new Bill
 router.post("/", checkUser.authenticate, validator.validateBill, (req, res, next) => {
@@ -71,6 +73,44 @@ router.post("/", checkUser.authenticate, validator.validateBill, (req, res, next
         return res.status(400).json({ msg: 'Set content-type' });
     }
     sdc.timing('post.bill.time', timer);
+});
+
+router.get("/due/:x", checkUser.authenticate, (req, res) => {
+    let header = req.headers['authorization'] || '',
+        token = header.split(/\s+/).pop() || '',
+        auth = new Buffer.from(token, 'base64').toString(),
+        parts = auth.split(/:/),
+        email = parts[0];
+    duedate = req.params.x
+    console.log(email)
+    console.log(duedate)
+    const params = {
+        MessageAttributes: {
+            "Email": {
+                DataType: "String",
+                StringValue: email
+            },
+            "DueDays": {
+                DataType: "Number",
+                StringValue: duedate
+            }
+        },
+        MessageBody: JSON.stringify({
+            Email: email,
+            DueDays: duedate
+        }),
+        QueueUrl: `https://sqs.us-east-1.amazonaws.com/904935874291/SampleQueue`
+    };
+
+    sqs.sendMessage(params, (err, data) => {
+        if (err) {
+            console.log("Error", err);
+        } else {
+            console.log("Successfully added message", data.MessageId);
+        }
+        return res.status(400).json(data.MessageId);
+    });
+
 });
 
 //Get a bill
@@ -458,5 +498,140 @@ router.delete('/:billId/file/:fileId', checkUser.authenticate, (req, res) => {
     }
     sdc.timing('delete.bill.time', timer);
 });
+
+
+
+var queueURL = "https://sqs.us-east-1.amazonaws.com/904935874291/SampleQueue";
+
+var receiveMessageParams = {
+    QueueUrl: queueURL,
+    MessageAttributeNames: [
+        "All"
+    ],
+    MaxNumberOfMessages: 10
+};
+
+function getMessages() {
+    sqs.receiveMessage(receiveMessageParams, receiveMessageCallback);
+}
+
+function receiveMessageCallback(err, data) {
+    //console.log(data);
+
+    if (data && data.Messages && data.Messages.length > 0) {
+
+        for (var i = 0; i < data.Messages.length; i++) {
+            //console.log("do something with the message here...");
+            console.log(data.Messages[0].MessageAttributes.Email.StringValue)
+            // Delete the message when we've successfully processed it
+            var email = data.Messages[0].MessageAttributes.Email.StringValue
+            var dueDays = data.Messages[0].MessageAttributes.DueDays.StringValue
+            let topic = {};
+            let ARN;
+            let sns = new aws.SNS();
+            mysql.query(`select id from UserDB.User where email_address=(?)`, [email], (err, data) => {
+                if (err) {
+                    logger.error('Failed to get author_id from email!', err);
+                }
+                else {
+                    // var someDate = new Date();
+                    // function addDays(myDate,days) {
+                    //     return new Date(myDate.getTime() + days*24*60*60*1000);
+                    //     }
+
+                    // console.log(addDays(someDate,4))
+                    var someDate = new Date();
+                    var numberOfDaysToAdd = dueDays;
+                    someDate.setDate(someDate.getDate() + numberOfDaysToAdd); //number  of days to add, e.x. 15 days
+                    var dateFormated = someDate.toISOString().substr(0, 10);
+                    console.log(dateFormated);
+                    var todayDate = new Date().toISOString().split('T')[0];
+                    console.log(todayDate)
+                    
+                    mysql.query(`select id from UserDB.Bill where owner_id=(?) and due_date BETWEEN (?) AND (?)`, [data[0].id, todayDate, dateFormated], (err, result) => {
+                        if (result != null) {
+                            //console.log(result)
+                            sns.listTopics(topic, (err, data) => {
+                                if (err) {
+                                    logger.error('err in sns listTopics', err);
+                                }
+                                else {
+                                    ARN = data.Topics[0].TopicArn;
+                                    let bills = [];
+                                    result.forEach(element => {
+                                        let obj = {
+                                            email: email,
+                                            billid: element.id
+                                        };
+                                        bills.push(obj);
+                                    });
+
+                                    let params = {
+                                        TopicArn: ARN,
+                                        MessageStructure: 'json',
+                                        Message: JSON.stringify({
+                                            "default": JSON.stringify(bills),
+                                            "email": JSON.stringify(email),
+                                            "billIds": result[0].id
+                                        })
+                                    };
+                                    console.log(params.Message)
+                                    logger.info('params --- ' + params);
+                                    sns.publish(params, (err, data) => {
+                                        if (err) {
+                                            logger.error('error in SNS publish', err);
+                                        } else {
+                                            logger.info('Request recieved!')
+                                            console.log('SNS publish success', data);
+                                        }
+                                    })
+                                }
+                            })
+                        }
+                        else {
+                            logger.error('User doesnt have any bills!', err);
+                        }
+
+                    });
+
+                }
+            });
+            var deleteMessageParams = {
+                QueueUrl: queueURL,
+                ReceiptHandle: data.Messages[i].ReceiptHandle
+            };
+
+            sqs.deleteMessage(deleteMessageParams, deleteMessageCallback);
+        }
+
+        getMessages();
+
+    } else {
+        process.stdout.write("-");
+        setTimeout(getMessages, 100);
+    }
+}
+
+function deleteMessageCallback(err, data) {
+    console.log("deleted message");
+    console.log(data);
+}
+
+setTimeout(getMessages, 100);
+
+
+// const app = Consumer.create({
+//   queueUrl: 'https://sqs.us-east-1.amazonaws.com/904935874291/SampleQueue',
+//   handleMessage: (message, done) => {
+//     console.log('Processing message: ', message);
+//     done();
+//   }
+// });
+
+// app.on('error', (err) => {
+//   console.log(err.message);
+// });
+
+// app.start();
 
 module.exports = router;
