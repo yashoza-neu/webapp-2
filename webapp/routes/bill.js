@@ -527,13 +527,13 @@ function receiveMessageCallback(err, data) {
             logger.info(data.Messages[0].MessageAttributes.DueDays.StringValue)
             // Delete the message when we've successfully processed it
             var email = data.Messages[0].MessageAttributes.Email.StringValue
-            var dueDays = data.Messages[0].MessageAttributes.DueDays.StringValue
+            var dueDays = parseInt(data.Messages[0].MessageAttributes.DueDays.StringValue)
             let topic = {};
             let ARN;
             let sns = new aws.SNS();
             mysql.query(`select id from UserDB.User where email_address=(?)`, [email], (err, data) => {
                 if (err) {
-                    logger.error('Failed to get author_id from email!', err);
+                    logger.error('Failed to get owner_id from email!', err);
                 }
                 else {
                     logger.info(data);
@@ -542,7 +542,8 @@ function receiveMessageCallback(err, data) {
                     //     return new Date(myDate.getTime() + days*24*60*60*1000);
                     //     }
 
-                    var someDate = new Date()
+                    var someDate = new Date();
+                    logger.info(typeof(dueDays))
                     someDate.setDate(someDate.getDate() + dueDays);
                     logger.info(dueDays)
                     var dateFormated = someDate.toISOString().substr(0, 10);
@@ -618,6 +619,7 @@ function receiveMessageCallback(err, data) {
 function deleteMessageCallback(err, data) {
     console.log("deleted message");
     console.log(data);
+    logger.info("Message Deleted from Queue")
 }
 
 setTimeout(getMessages, 100);
