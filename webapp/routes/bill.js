@@ -536,6 +536,7 @@ function receiveMessageCallback(err, data) {
                     logger.error('Failed to get author_id from email!', err);
                 }
                 else {
+                    logger.info(data);
                     // var someDate = new Date();
                     // function addDays(myDate,days) {
                     //     return new Date(myDate.getTime() + days*24*60*60*1000);
@@ -545,7 +546,7 @@ function receiveMessageCallback(err, data) {
                     someDate.setDate(someDate.getDate() + dueDays);
                     logger.info(dueDays)
                     var dateFormated = someDate.toISOString().substr(0, 10);
-                    logger.log("date x="+dateFormated);
+                    logger.info("date x="+dateFormated);
                     var todayDate = new Date().toISOString().split('T')[0];
                     logger.info(todayDate)
 
