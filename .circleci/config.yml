@@ -143,5 +143,4 @@ workflows:
           filters:
             branches:
               only:
-                - master
-                - Assignment-10
+                - assignment-11

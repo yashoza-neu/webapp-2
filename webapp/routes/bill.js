@@ -100,7 +100,7 @@ router.get("/due/:x", checkUser.authenticate, (req, res) => {
             Email: email,
             DueDays: duedate
         }),
-        QueueUrl: `https://sqs.us-east-1.amazonaws.com/948482737964/SampleQueue`
+        QueueUrl: `https://sqs.us-east-1.amazonaws.com/904935874291/SampleQueue`
     };
     logger.info("Added to queue")
     sqs.sendMessage(params, (err, data) => {
@@ -503,7 +503,7 @@ router.delete('/:billId/file/:fileId', checkUser.authenticate, (req, res) => {
 
 
 
-var queueURL = "https://sqs.us-east-1.amazonaws.com/948482737964/SampleQueue";
+var queueURL = "https://sqs.us-east-1.amazonaws.com/904935874291/SampleQueue";
 
 var receiveMessageParams = {
     QueueUrl: queueURL,
